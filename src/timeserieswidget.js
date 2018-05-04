@@ -4,6 +4,7 @@ function TimeseriesWidget() {
   var that=this;
   this.div=function() {return m_div;};
   this.setTimeseriesModel=function(X) {setTimeseriesModel(X);};
+  this.setFiringsModel=function(X) {setFiringsModel(X);};
   this.setSampleRate=function(s) {m_samplerate=s; schedule_refresh();};
   this.setTimepointRange=function(range) {setTimepointRange(range);};
   this.currentTimepoint=function() {return m_current_timepoint;};
@@ -11,6 +12,7 @@ function TimeseriesWidget() {
   this.setSize=function(W,H) {m_width=W; m_height=H; schedule_refresh();};
     
   var m_timeseries_model=null;
+  var m_firings_model=null;
   var m_width=300;
   var m_height=300;
   var m_samplerate=20000;
@@ -129,7 +131,7 @@ function TimeseriesWidget() {
     
     var padding_left=70;
     var padding_right=20;
-    var padding_top=20;
+    var padding_top=40;
     var padding_bottom=60;
     var spacing=0; //between channels
     
@@ -184,6 +186,16 @@ function TimeseriesWidget() {
       schedule_refresh();
       return;
     }
+
+    var firings=null;
+    if (m_firings_model) {
+      firings=m_firings_model.getChunk({t1:t1,t2:t2+1});
+      if (!firings) {
+        //unable to get firings chunk... perhaps it has not yet been loaded
+        schedule_refresh();
+        return;
+      }
+    }
     
     var xdata=d3.range(t1,t2+1);
     for (var i=0; i<xdata.length; i++) {
@@ -215,6 +227,27 @@ function TimeseriesWidget() {
     holder.find('.axis text').css({fill:'#766','font-size':'12px'});
     
     var full_yrange=[padding_top,height-padding_bottom];
+
+    if (firings) {
+      var line=d3.line()
+        .x(function(d) {return m_xscale(d.x);})
+        .y(function(d) {return d.y;});
+      for (var i=0; i<firings.times.length; i++) {
+        var data0=[];
+        data0.push({x:firings.times[i]/samplerate,y:padding_top});
+        data0.push({x:firings.times[i]/samplerate,y:height-padding_bottom});
+        var path=gg.append("path") // Add the line path from the data
+          .attr("d", line(data0));
+        $(path.node()).css({fill:"none",stroke:'red',"stroke-width":1});
+
+        gg.append("text")
+          .attr("transform",'translate('+(m_xscale(firings.times[i]/samplerate))+', '+(padding_top-10)+')')
+          .style("text-anchor", "middle")
+          .style('font-size','12px')
+          .style('fill','red')
+          .text(firings.labels[i]);
+      }
+    }
 
     for (var m=0; m<M; m++) {
       var color=channel_colors[m%channel_colors.length];
@@ -351,7 +384,10 @@ function TimeseriesWidget() {
   }
   function setTimeseriesModel(X) {
     m_timeseries_model=X;
-    console.log ('Computing timeseries stats...');
+    schedule_refresh();
+  }
+  function setFiringsModel(X) {
+    m_firings_model=X;
     schedule_refresh();
   }
   function on_click_timepoint(t0) {

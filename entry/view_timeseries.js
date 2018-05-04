@@ -13,10 +13,18 @@ const BrowserWindow = electron.BrowserWindow;
 let mainWindow = null;
 let mainWebContents = null;
 
+function print_usage() {
+  console.log ('Usage:');
+  console.log ('ev-view-timeseries [timeseries].mda[.prv]');
+  console.log ('ev-view-timeseries [timeseries].mda[.prv] --firings [firings].mda[.prv]');
+}
+
 var params={};
 var CLP=new CLParams(process.argv);
 if (!CLP.unnamedParameters[0]) {
-  throw new Error("Missing required file name");
+  print_usage();
+  app.quit();
+  return;
 }
 params.fname=CLP.unnamedParameters[0];
 if (!fs.existsSync(params.fname)) {
@@ -24,6 +32,14 @@ if (!fs.existsSync(params.fname)) {
 }
 var original_fname=params.fname;
 params.fname=resolve_prv(params.fname);
+
+//firings
+if ('firings' in CLP.namedParameters) {
+  params.firings=resolve_prv(CLP.namedParameters['firings']);
+  if (!fs.existsSync(params.firings)) {
+    throw new Error("File does not exist: "+params.firings);
+  }
+}
 
 global.sharedObject = {params: params}
 
@@ -146,9 +162,14 @@ function CLParams(argv) {
         this.namedParameters[arg0.slice(0,ind)]=arg0.slice(ind+1);
       }
       else {
-        //this.namedParameters[arg0]=args[i+1]||'';
-        //i++;
         this.namedParameters[arg0]='';
+        if (i+1<args.length) {
+          var str=args[i+1];
+          if (str.indexOf('-')!=0) {
+            this.namedParameters[arg0]=str;
+            i++;  
+          }
+        }
       }
     }
     else if (arg0.indexOf('-')===0) {
@@ -166,7 +187,6 @@ function ends_with(str,str2) {
 }
 
 function resolve_prv(fname) {
-  console.log(fname);
   if (ends_with(fname,'.prv')) {
     if (!fs.existsSync(fname)) {
       throw new Error('File does not exist: '+fname);

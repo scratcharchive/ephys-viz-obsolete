@@ -25,16 +25,13 @@ function partialFSReadSync(path, start, end) {
 }
 
 function read_binary_file_part(path,start,end,callback) {
-	console.log(path,start,end);
 	require('fs').open(path, 'r', function(err, fd) {
 		if (err) {
 		    callback(err.message);
 		    return;
 		}
 		var buffer = new Buffer(end-start);
-		console.log('test');
 		require('fs').read(fd, buffer, 0, end-start, start, function(err, num) {
-			console.log('test2');
 			if (err) {
 				callback(err.message);
 				return;
@@ -65,7 +62,6 @@ function TimeseriesModel_Disk(path) {
 			status:'loading'
 		};
 		do_load_chunk(i,function(chunk) {
-			console.log(chunk.N1(),chunk.N2());
 			m_loaded_chunks[i].status='loaded';
 			m_loaded_chunks[i].chunk=chunk;
 		});
@@ -73,15 +69,13 @@ function TimeseriesModel_Disk(path) {
 	}
 
 	function do_load_chunk(i,callback) {
-		console.log('do_load_chunk',i);
 		var M=that.numChannels();
 		var i1=M*i*m_chunk_size;
 		var i2=M*(i+1)*m_chunk_size;
 		if (i2>M*that.numTimepoints())
 			i2=M*that.numTimepoints();
-		var pos1=(m_header.header_size+i1)*m_header.num_bytes_per_entry;
-		var pos2=(m_header.header_size+i2)*m_header.num_bytes_per_entry;
-		console.log(path,pos1,pos2);
+		var pos1=m_header.header_size+i1*m_header.num_bytes_per_entry;
+		var pos2=m_header.header_size+i2*m_header.num_bytes_per_entry;
 		read_binary_file_part(path,pos1,pos2,function(err,buf) {
 			if (err) {
 				console.error(`Error reading part of file ${path}: `+err);
@@ -102,7 +96,6 @@ function TimeseriesModel_Disk(path) {
 				console.error('Unsupported dtype: '+dtype);
 				return false;
 			}
-			console.log(data);
 			var chunk=new Mda();
 			chunk.allocate(M,(i2-i1)/M);
 			chunk.setData(data);
@@ -170,6 +163,40 @@ function TimeseriesModel_Disk(path) {
 	}
 }
 
+function FiringsModel_Memory(X) {
+	this.getChunk=function(opts) {return getChunk(opts);};
+	this.numEvents=function() {return m_all_times.length;};
+
+	var m_all_times=[];
+	var m_all_labels=[];
+
+	for (var i=0; i<X.N2(); i++) {
+		var t0=X.value(1,i);
+		var k0=X.value(2,i);
+		m_all_times.push(t0);
+		m_all_labels.push(k0);
+	}
+	// TODO: sort by time for better efficiency
+	X=0; //free memory (I think)
+
+	function getChunk(opts) {
+		var ret={
+			times:[],
+			labels:[]
+		}
+		// TODO: sort for better efficiency
+		for (var i=0; i<m_all_times.length; i++) {
+			var t0=m_all_times[i];
+			if ((opts.t1<=t0)&&(t0<opts.t2)) {
+				ret.times.push(t0);
+				ret.labels.push(m_all_labels[i]);
+			}
+		}
+		return ret;
+	}
+}
+
+
 //var fname='/tmp/mountainlab-tmp/output_813e1ace5ed51aab7ec230c65e6385abcd23840c_timeseries_out.mda';
 var fname=params.fname;
 //var buf=require('fs').readFileSync(fname).buffer;
@@ -178,14 +205,23 @@ var fname=params.fname;
 //var TSM=new TimeseriesModel_Memory(X);
 var TSM=new TimeseriesModel_Disk(fname)
 var W=new TimeseriesWidget();
-W.setSampleRate(30000);
 W.setTimeseriesModel(TSM);
+
+W.setSampleRate(30000);
+
+if (params.firings) {
+	var buf=require('fs').readFileSync(params.firings).buffer;
+	var X=new Mda();
+	X.setFromArrayBuffer(buf);
+	var FM=new FiringsModel_Memory(X);
+	W.setFiringsModel(FM);
+}
+
 W.setSize(400,400);
 W.setTimepointRange([0,1000]);
 $('#content').append(W.div());
 $(window).resize(update_size);
 update_size();
 function update_size() {
-	console.log('update_size');
 	W.setSize($('#content').width(),$('#content').height());
 }

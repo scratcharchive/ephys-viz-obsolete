@@ -156,7 +156,6 @@ function Mda(arg1,arg2,arg3,arg4,arg5) {
 	};
 	function _setFromArrayBuffer(buf) {
 		var X=new Int32Array(buf.slice(0,64));
-		console.log(X);
 		var num_bytes_per_entry=X[1];
 		var num_dims=X[2];
 		m_dims=[];
