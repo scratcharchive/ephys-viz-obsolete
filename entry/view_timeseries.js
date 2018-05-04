@@ -19,6 +19,12 @@ if (!CLP.unnamedParameters[0]) {
   throw new Error("Missing required file name");
 }
 params.fname=CLP.unnamedParameters[0];
+if (!fs.existsSync(params.fname)) {
+  throw new Error("File does not exist: "+params.fname);
+}
+var original_fname=params.fname;
+params.fname=resolve_prv(params.fname);
+
 global.sharedObject = {params: params}
 
 function createWindow() {
@@ -40,6 +46,7 @@ function createWindow() {
     y: y,
     width: width,
     height: height,
+    title: 'ephys-viz (view_timeseries) '+original_fname
   });
 
   mainWindow.on('closed', () => {
@@ -153,3 +160,26 @@ function CLParams(argv) {
     }
   }
 };
+
+function ends_with(str,str2) {
+  return (str.slice(str.length-str2.length)==str2);
+}
+
+function resolve_prv(fname) {
+  console.log(fname);
+  if (ends_with(fname,'.prv')) {
+    if (!fs.existsSync(fname)) {
+      throw new Error('File does not exist: '+fname);
+      return;
+    }
+    var fname2 = require('child_process').execSync("ml-prv-locate "+fname).toString().trim();
+    if (!fname2) {
+      throw new Error('Unable to find file for: '+fname);
+    }
+    if (!fs.existsSync(fname2)) {
+      throw new Error('Failure of prv-locate: '+fname2);
+    }
+    return fname2;
+  }
+  return fname;
+}

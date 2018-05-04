@@ -127,10 +127,10 @@ function TimeseriesWidget() {
     var holder=m_div.find('#holder');
     var TS=m_timeseries_model;
     
-    var padding_left=50;
+    var padding_left=70;
     var padding_right=20;
     var padding_top=20;
-    var padding_bottom=50;
+    var padding_bottom=60;
     var spacing=0; //between channels
     
     var width=m_width;
@@ -201,6 +201,12 @@ function TimeseriesWidget() {
       .attr("transform",'translate('+(0)+', '+(height-padding_bottom)+')')
       .call(x_axis);
 
+    // text label for the x axis
+    gg.append('text')
+        .attr("transform",'translate('+(xrange[0]+xrange[1])/2+', '+(height-padding_bottom+50)+')')
+        .style("text-anchor", "middle")
+        .text("Time (sec)");
+
     if (m_current_timepoint>=0) {
       var yscale=d3.scaleLinear().domain([0,1]).range([padding_top,height-padding_bottom]);
       draw_current_timepoint(gg,m_xscale,yscale);
@@ -221,19 +227,19 @@ function TimeseriesWidget() {
       var ysig=m_timeseries_stats.overall_stdev;
       var y0domain=[ymu-7*ysig/m_amp_factor,ymu+7*ysig/m_amp_factor];
       var y0scale = d3.scaleLinear().domain(y0domain).range(y0range);
-      var y0_axis=d3.axisLeft().scale(y0scale).ticks(1);
+      var y0_axis=d3.axisLeft().scale(y0scale).ticks(0);
+      
       gg.append("g") // Add the Y Axis
         .attr("class", "y axis")
         .attr("transform",'translate('+(padding_left-5)+', '+(0)+')')
         .call(y0_axis);
+      
       // text label for the y axis
-      gg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - (padding_left))
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text("Ch. "+(m+1));  
+      gg.append('text')
+        .attr("transform",'translate('+(padding_left-15)+', '+(y0range[0]+y0range[1])/2+')')
+        .style("text-anchor", "end")
+        .text("Ch. "+(m+1));
+
       var ydata0=d3.range(t2-t1+1); //todo: use something like d3.zeros
       var data0=[];
       for (var i=0; i<t2-t1+1; i++) {
