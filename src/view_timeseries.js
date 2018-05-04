@@ -47,7 +47,7 @@ function read_binary_file_part(path,start,end,callback) {
 		    for (var jj=0; jj<body.length; jj++) {
 		    	AA[jj]=body[jj];
 		    }
-		    
+
 		    callback(null,AA.buffer);
 		});
 	}
@@ -264,7 +264,7 @@ TSM.initialize(function(err) {
 	var W=new TimeseriesWidget();
 	W.setTimeseriesModel(TSM);
 
-	W.setSampleRate(30000);
+	W.setSampleRate(Number(params.samplerate)||1);
 
 	if (params.firings) {
 		var buf=require('fs').readFileSync(params.firings).buffer;

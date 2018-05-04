@@ -15,8 +15,8 @@ let mainWebContents = null;
 
 function print_usage() {
   console.log ('Usage:');
-  console.log ('ev-view-timeseries [timeseries].mda[.prv]');
-  console.log ('ev-view-timeseries [timeseries].mda[.prv] --firings [firings].mda[.prv]');
+  console.log ('ev-view-timeseries [timeseries].mda[.prv] --samplerate=[30000]');
+  console.log ('ev-view-timeseries [timeseries].mda[.prv] --firings [firings].mda[.prv] --samplerate=[30000]');
 }
 
 var params={};
@@ -32,6 +32,8 @@ if (!exists_or_is_url(params.fname)) {
 }
 var original_fname=params.fname;
 params.fname=resolve_prv(params.fname,{search_remote:true});
+
+params.samplerate=CLP.namedParameters['samplerate']||1;
 
 //firings
 if ('firings' in CLP.namedParameters) {
