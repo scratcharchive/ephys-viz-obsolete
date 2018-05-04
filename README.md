@@ -6,15 +6,19 @@ Authors: Jeremy Magland
 
 ## Installation
 
-Use Linux
+Use Linux (should also work in OSX, but not yet tested)
 
-Prerequisites: A recent version of NodeJS
 
-Highly recommended prerequisite: mountainlab-js with the ml_ephys package
+Step 0. Install the following prerequisites
 
-0. Install the above prerequisites
+* A recent version of NodeJS
+* [mountainlab-js](https://github.com/flatironinstitute/mountainlab-js) with the [ml_ephys](https://github.com/magland/ml_ephys) plugin package
 
-1. Clone this repository
+Step 1. Clone this repository
+
+```
+git clone https://github.com/flatironinstitute/ephys-viz
+```
 
 2. Install using npm:
 
@@ -31,5 +35,9 @@ View a timeseries dataset in mda format:
 
 ```
 ev-view-timeseries raw.mda
+ev-view-timeseries raw.mda.prv
 ```
+
+See also the example(s) in the ephys-viz/examples directory
+
 
