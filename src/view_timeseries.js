@@ -25,25 +25,54 @@ function partialFSReadSync(path, start, end) {
 }
 
 function read_binary_file_part(path,start,end,callback) {
-	require('fs').open(path, 'r', function(err, fd) {
-		if (err) {
-		    callback(err.message);
-		    return;
-		}
-		var buffer = new Buffer(end-start);
-		require('fs').read(fd, buffer, 0, end-start, start, function(err, num) {
-			if (err) {
-				callback(err.message);
-				return;
-			}
-			callback(null,buffer.buffer);
+	if (is_url(path)) {
+		var opts = {
+		    method: 'GET',
+		    url: path,
+		    encoding: null, // See https://stackoverflow.com/questions/14855015/getting-binary-content-in-node-js-using-request
+		    headers:{
+		    	"range":`bytes=${start}-${end-1}`
+		    }
+		};
+		require('request')(opts, function(error, response, body) {
+		    if (error) {
+		    	callback(error.message);
+		    	return;
+		    }
+
+		    // The following is sadly necessary because the body is returned
+		    // with an underlying buffer that holds 32-bit integers. Can you believe it??
+		    // TODO: fix this by using utf8 and charcodes or something
+		    var AA=new Uint8Array(body.length);
+		    for (var jj=0; jj<body.length; jj++) {
+		    	AA[jj]=body[jj];
+		    }
+		    
+		    callback(null,AA.buffer);
 		});
-	});
+	}
+	else {
+		require('fs').open(path, 'r', function(err, fd) {
+			if (err) {
+			    callback(err.message);
+			    return;
+			}
+			var buffer = new Buffer(end-start);
+			require('fs').read(fd, buffer, 0, end-start, start, function(err, num) {
+				if (err) {
+					callback(err.message);
+					return;
+				}
+				callback(null,buffer.buffer);
+			});
+		});
+	}
 }
 
-function TimeseriesModel_Disk(path) {
+function TimeseriesModel_DiskOrUrl(path) {
 	var that=this;
 
+	this.initialize=function(callback) {initialize(callback);};
 	this.getChunk=function(opts) {return getChunk(opts);};
 	this.numChannels=function() {return numChannels();};
 	this.numTimepoints=function() {return numTimepoints();};
@@ -55,6 +84,10 @@ function TimeseriesModel_Disk(path) {
 	var m_loaded_chunks={};
 
 	function load_chunk(i) {
+		if (!m_header) {
+			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			return;
+		}
 		if (m_loaded_chunks[i]) {
 			return m_loaded_chunks[i];
 		}
@@ -104,6 +137,10 @@ function TimeseriesModel_Disk(path) {
 	}
 
 	function getChunk(opts) {
+		if (!m_header) {
+			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			return;
+		}
 		var i1=Math.floor(opts.t1/m_chunk_size);
 		var i2=Math.floor(opts.t2/m_chunk_size);
 		var chunks={};
@@ -127,39 +164,53 @@ function TimeseriesModel_Disk(path) {
 		}
 		return ret;
 	}
-	function load_header() {
-		m_header={};
-		var buf=partialFSReadSync(path,0,64);
-		var X=new Int32Array(buf);
-		m_header.num_bytes_per_entry=X[1];
-		m_header.num_dims=X[2];
-		m_header.dims=[];
-		if ((m_header.num_dims<2)||(m_header.num_dims>5)) {
-			console.error('Invalid number of dimensions **: '+m_header.num_dims);
-			return false;
-		} 
-		for (var i=0; i<m_header.num_dims; i++) {
-			m_header.dims.push(X[3+i]);
-		}
-		m_header.dtype=get_dtype_string(X[0]);
-		m_header.header_size=(m_header.num_dims+3)*4;
-		function get_dtype_string(num) {
-			if (num==-2) return 'byte';
-			if (num==-3) return 'float32';
-			if (num==-4) return 'int16';
-			if (num==-5) return 'int32';
-			if (num==-6) return 'uint16';
-			if (num==-7) return 'float64';
-			return '';
-		}
-	}
 	function numChannels() {
-		if (!m_header) load_header();
+		if (!m_header) {
+			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			return;
+		}
 		return m_header.dims[0];
 	}
 	function numTimepoints() {
-		if (!m_header) load_header();
+		if (!m_header) {
+			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			return;
+		}
 		return m_header.dims[1];
+	}
+	function initialize(callback) {
+		m_header=null;
+		read_binary_file_part(path,0,64,function(err,buf) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			m_header={};
+			var X=new Int32Array(buf);
+			m_header.num_bytes_per_entry=X[1];
+			m_header.num_dims=X[2];
+			m_header.dims=[];
+			if ((m_header.num_dims<2)||(m_header.num_dims>5)) {
+				callback('Invalid number of dimensions **: '+m_header.num_dims);
+				return;
+			} 
+			for (var i=0; i<m_header.num_dims; i++) {
+				m_header.dims.push(X[3+i]);
+			}
+			m_header.dtype=get_dtype_string(X[0]);
+			m_header.header_size=(m_header.num_dims+3)*4;
+			callback(null);
+
+			function get_dtype_string(num) {
+				if (num==-2) return 'byte';
+				if (num==-3) return 'float32';
+				if (num==-4) return 'int16';
+				if (num==-5) return 'int32';
+				if (num==-6) return 'uint16';
+				if (num==-7) return 'float64';
+				return '';
+			}
+		});
 	}
 }
 
@@ -203,25 +254,36 @@ var fname=params.fname;
 //var X=new Mda();
 //X.setFromArrayBuffer(buf);
 //var TSM=new TimeseriesModel_Memory(X);
-var TSM=new TimeseriesModel_Disk(fname)
-var W=new TimeseriesWidget();
-W.setTimeseriesModel(TSM);
+var TSM;
+TSM=new TimeseriesModel_DiskOrUrl(fname);
+TSM.initialize(function(err) {
+	if (err) {
+		throw new Error(`Error initializing timeseries model for ${fname}: ${err}`);
+		return;
+	}
+	var W=new TimeseriesWidget();
+	W.setTimeseriesModel(TSM);
 
-W.setSampleRate(30000);
+	W.setSampleRate(30000);
 
-if (params.firings) {
-	var buf=require('fs').readFileSync(params.firings).buffer;
-	var X=new Mda();
-	X.setFromArrayBuffer(buf);
-	var FM=new FiringsModel_Memory(X);
-	W.setFiringsModel(FM);
-}
+	if (params.firings) {
+		var buf=require('fs').readFileSync(params.firings).buffer;
+		var X=new Mda();
+		X.setFromArrayBuffer(buf);
+		var FM=new FiringsModel_Memory(X);
+		W.setFiringsModel(FM);
+	}
 
-W.setSize(400,400);
-W.setTimepointRange([0,1000]);
-$('#content').append(W.div());
-$(window).resize(update_size);
-update_size();
-function update_size() {
-	W.setSize($('#content').width(),$('#content').height());
+	W.setSize(400,400);
+	W.setTimepointRange([0,1000]);
+	$('#content').append(W.div());
+	$(window).resize(update_size);
+	update_size();
+	function update_size() {
+		W.setSize($('#content').width(),$('#content').height());
+	}	
+});
+
+function is_url(fname_or_url) {
+	return ((fname_or_url.indexOf('http:')==0)||(fname_or_url.indexOf('https:')==0));
 }

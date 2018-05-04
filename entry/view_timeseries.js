@@ -27,16 +27,16 @@ if (!CLP.unnamedParameters[0]) {
   return;
 }
 params.fname=CLP.unnamedParameters[0];
-if (!fs.existsSync(params.fname)) {
+if (!exists_or_is_url(params.fname)) {
   throw new Error("File does not exist: "+params.fname);
 }
 var original_fname=params.fname;
-params.fname=resolve_prv(params.fname);
+params.fname=resolve_prv(params.fname,{search_remote:true});
 
 //firings
 if ('firings' in CLP.namedParameters) {
-  params.firings=resolve_prv(CLP.namedParameters['firings']);
-  if (!fs.existsSync(params.firings)) {
+  params.firings=resolve_prv(CLP.namedParameters['firings'],{search_remote:true});
+  if (!exists_or_is_url(params.firings)) {
     throw new Error("File does not exist: "+params.firings);
   }
 }
@@ -186,20 +186,38 @@ function ends_with(str,str2) {
   return (str.slice(str.length-str2.length)==str2);
 }
 
-function resolve_prv(fname) {
+function resolve_prv(fname,opts) {
+  opts=opts||{};
   if (ends_with(fname,'.prv')) {
     if (!fs.existsSync(fname)) {
       throw new Error('File does not exist: '+fname);
       return;
     }
-    var fname2 = require('child_process').execSync("ml-prv-locate "+fname).toString().trim();
+    var fname2=require('child_process').execSync("ml-prv-locate "+fname).toString().trim();
+    if (!fname2) {
+      if (opts.search_remote) {
+        console.log ('searching kbucket...');
+        fname2 = require('child_process').execSync("ml-prv-locate "+fname+' --remote').toString().trim();
+      }
+    }
     if (!fname2) {
       throw new Error('Unable to find file for: '+fname);
     }
-    if (!fs.existsSync(fname2)) {
+    
+    if (!exists_or_is_url(fname2)) {
       throw new Error('Failure of prv-locate: '+fname2);
     }
+    console.log ('Found file: '+fname2);
     return fname2;
   }
   return fname;
+}
+
+function exists_or_is_url(fname_or_url) {
+  if (is_url(fname_or_url)) return true;
+  return fs.existsSync(fname_or_url);
+}
+
+function is_url(fname_or_url) {
+  return ((fname_or_url.indexOf('http:')==0)||(fname_or_url.indexOf('https:')==0));
 }
