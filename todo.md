@@ -1,0 +1,1 @@
+- [ ] Make this a proper web app that can be run in electron.
