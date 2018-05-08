@@ -61,12 +61,10 @@ function is_url(fname_or_url) {
 }
 
 function browser__load_binary_file_part(url,start,end,callback) {
-	console.log('browser__load_binary_file_part: '+url);
 	var headers={};
 	if ((start!==undefined)&&(end!==undefined)) {
 		headers['range']=`bytes=${start}-${end-1}`;
 	}
-	console.log(JSON.stringify(headers));
 	$.ajax({
 		url: url,
 		type: "GET",
@@ -75,7 +73,6 @@ function browser__load_binary_file_part(url,start,end,callback) {
 		responseType: 'arraybuffer',
 		headers:headers,
 		error: function(jqXHR, textStatus, errorThrown) {
-			console.log('a');
 			if (callback) {
 				callback('Error loading binary file part: '+textStatus+': '+errorThrown);
 				callback=null;
@@ -140,6 +137,10 @@ function electron__load_binary_file_part(path,start,end,callback) {
 			});
 		});
 	}
+}
+
+function get_file_size(fname) {
+	return require('fs').statSync(fname).size;
 }
 
 /**

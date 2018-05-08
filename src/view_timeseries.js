@@ -1,5 +1,4 @@
 var PARAMS=window.RESOURCES.params;
-console.log(window.RESOURCES.params);
 var load_binary_file_part=window.RESOURCES.load_binary_file_part;
 
 function TimeseriesModel_Memory(X) {
@@ -52,7 +51,6 @@ function TimeseriesModel_DiskOrUrl(path) {
 			i2=M*that.numTimepoints();
 		var pos1=m_header.header_size+i1*m_header.num_bytes_per_entry;
 		var pos2=m_header.header_size+i2*m_header.num_bytes_per_entry;
-		console.log('do_load_chunk',i,pos1,pos2);
 		load_binary_file_part(path,pos1,pos2,function(err,buf) {
 			if (err) {
 				console.error(`Error reading part of file ${path}: `+err);
@@ -195,7 +193,6 @@ var TSM=null;
 var FM=null;
 
 $(document).ready(function() {
-	console.log(PARAMS);
 	var fname=PARAMS.fname;
 	var firings=PARAMS.firings;
 	load_timeseries_model(fname,function() {
