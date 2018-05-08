@@ -1,3 +1,5 @@
+exports.Mda=Mda;
+
 function Mda(arg1,arg2,arg3,arg4,arg5) {
 	var that=this;
 	this.allocate=function(n1,n2,n3,n4,n5) {return _allocate(n1,n2,n3,n4,n5);};

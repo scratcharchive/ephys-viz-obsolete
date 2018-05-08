@@ -1,3 +1,5 @@
+exports.TimeseriesWidget=TimeseriesWidget;
+
 function TimeseriesWidget() {
   var that=this;
   this.div=function() {return m_div;};
@@ -236,13 +238,13 @@ function TimeseriesWidget() {
         data0.push({x:firings.times[i]/samplerate,y:height-padding_bottom});
         var path=gg.append("path") // Add the line path from the data
           .attr("d", line(data0));
-        $(path.node()).css({fill:"none",stroke:'red',"stroke-width":1});
+        $(path.node()).css({fill:"none",stroke:'pink',"stroke-width":1});
 
         gg.append("text")
           .attr("transform",'translate('+(m_xscale(firings.times[i]/samplerate))+', '+(padding_top-10)+')')
           .style("text-anchor", "middle")
           .style('font-size','12px')
-          .style('fill','red')
+          .style('fill','pink')
           .text(firings.labels[i]);
       }
     }

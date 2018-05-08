@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ev-view-timeseries franklab_tetrode_raw.mda.prv --samplerate=30000
+ev-view-timeseries franklab_tetrode_raw.mda.prv --samplerate=30000 --search_remote

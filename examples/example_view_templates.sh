@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ev-view-templates example_templates.mda.prv
+ev-view-templates --templates=example_templates.mda.prv --search_remote

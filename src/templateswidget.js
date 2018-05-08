@@ -1,4 +1,4 @@
-var d3 = require('d3');
+exports.TemplatesWidget=TemplatesWidget;
 
 function TemplatesWidget() {
   var that=this;
