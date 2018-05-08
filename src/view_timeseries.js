@@ -1,5 +1,6 @@
-var remote = require('electron').remote;
-var params = remote.getGlobal('sharedObject').params;
+var PARAMS=window.RESOURCES.params;
+console.log(window.RESOURCES.params);
+var load_binary_file_part=window.RESOURCES.load_binary_file_part;
 
 function TimeseriesModel_Memory(X) {
 	this.getChunk=function(opts) {return getChunk(opts);};
@@ -8,64 +9,6 @@ function TimeseriesModel_Memory(X) {
 
 	function getChunk(opts) {
 		return X.subArray(0,opts.t1,X.N1(),opts.t2-opts.t1+1);
-	}
-}
-
-function partialFSReadSync(path, start, end) {
-  if (start < 0 || end < 0 || end < start || end - start > 0x3fffffff)
-    throw new Error('bad start, end');
-  if (end - start === 0)
-    return new Buffer(0);
-
-  var buf = new Buffer(end - start);
-  var fd = require('fs').openSync(path, 'r');
-  require('fs').readSync(fd, buf, 0, end - start, start);
-  require('fs').closeSync(fd);
-  return buf.buffer;
-}
-
-function read_binary_file_part(path,start,end,callback) {
-	if (is_url(path)) {
-		var opts = {
-		    method: 'GET',
-		    url: path,
-		    encoding: null, // See https://stackoverflow.com/questions/14855015/getting-binary-content-in-node-js-using-request
-		    headers:{
-		    	"range":`bytes=${start}-${end-1}`
-		    }
-		};
-		require('request')(opts, function(error, response, body) {
-		    if (error) {
-		    	callback(error.message);
-		    	return;
-		    }
-
-		    // The following is sadly necessary because the body is returned
-		    // with an underlying buffer that holds 32-bit integers. Can you believe it??
-		    // TODO: fix this by using utf8 and charcodes or something
-		    var AA=new Uint8Array(body.length);
-		    for (var jj=0; jj<body.length; jj++) {
-		    	AA[jj]=body[jj];
-		    }
-
-		    callback(null,AA.buffer);
-		});
-	}
-	else {
-		require('fs').open(path, 'r', function(err, fd) {
-			if (err) {
-			    callback(err.message);
-			    return;
-			}
-			var buffer = new Buffer(end-start);
-			require('fs').read(fd, buffer, 0, end-start, start, function(err, num) {
-				if (err) {
-					callback(err.message);
-					return;
-				}
-				callback(null,buffer.buffer);
-			});
-		});
 	}
 }
 
@@ -109,7 +52,8 @@ function TimeseriesModel_DiskOrUrl(path) {
 			i2=M*that.numTimepoints();
 		var pos1=m_header.header_size+i1*m_header.num_bytes_per_entry;
 		var pos2=m_header.header_size+i2*m_header.num_bytes_per_entry;
-		read_binary_file_part(path,pos1,pos2,function(err,buf) {
+		console.log('do_load_chunk',i,pos1,pos2);
+		load_binary_file_part(path,pos1,pos2,function(err,buf) {
 			if (err) {
 				console.error(`Error reading part of file ${path}: `+err);
 				return;
@@ -180,7 +124,7 @@ function TimeseriesModel_DiskOrUrl(path) {
 	}
 	function initialize(callback) {
 		m_header=null;
-		read_binary_file_part(path,0,64,function(err,buf) {
+		load_binary_file_part(path,0,64,function(err,buf) {
 			if (err) {
 				callback(err);
 				return;
@@ -247,32 +191,55 @@ function FiringsModel_Memory(X) {
 	}
 }
 
+var TSM=null;
+var FM=null;
 
-//var fname='/tmp/mountainlab-tmp/output_813e1ace5ed51aab7ec230c65e6385abcd23840c_timeseries_out.mda';
-var fname=params.fname;
-//var buf=require('fs').readFileSync(fname).buffer;
-//var X=new Mda();
-//X.setFromArrayBuffer(buf);
-//var TSM=new TimeseriesModel_Memory(X);
-var TSM;
-TSM=new TimeseriesModel_DiskOrUrl(fname);
-TSM.initialize(function(err) {
-	if (err) {
-		throw new Error(`Error initializing timeseries model for ${fname}: ${err}`);
-		return;
+$(document).ready(function() {
+	console.log(PARAMS);
+	var fname=PARAMS.fname;
+	var firings=PARAMS.firings;
+	load_timeseries_model(fname,function() {
+		load_firings_model(firings,function() {
+			start_app();
+		});
+	})
+});
+
+
+function load_timeseries_model(fname,callback) {
+	TSM=new TimeseriesModel_DiskOrUrl(fname);
+	TSM.initialize(function(err) {
+		if (err) {
+			throw new Error(`Error initializing timeseries model for ${fname}: ${err}`);
+			return;
+		}
+		callback();
+	});
+}
+
+function load_firings_model(firings,callback) {
+	if (firings) {
+		load_binary_file_part(firings,undefined,undefined,function(err,buf) {
+			if (err) {
+				throw new Error(`Error loading firings file: ${firings}`);
+				return;
+			}
+			var X=new Mda();
+			X.setFromArrayBuffer(buf);
+			var FM=new FiringsModel_Memory(X);
+			callback();
+		});
 	}
+	else {
+		callback();
+	}
+}
+
+function start_app() {
 	var W=new TimeseriesWidget();
 	W.setTimeseriesModel(TSM);
 
-	W.setSampleRate(Number(params.samplerate)||1);
-
-	if (params.firings) {
-		var buf=require('fs').readFileSync(params.firings).buffer;
-		var X=new Mda();
-		X.setFromArrayBuffer(buf);
-		var FM=new FiringsModel_Memory(X);
-		W.setFiringsModel(FM);
-	}
+	W.setSampleRate(Number(PARAMS.samplerate)||1);
 
 	W.setSize(400,400);
 	W.setTimepointRange([0,1000]);
@@ -281,9 +248,9 @@ TSM.initialize(function(err) {
 	update_size();
 	function update_size() {
 		W.setSize($('#content').width(),$('#content').height());
-	}	
-});
-
-function is_url(fname_or_url) {
-	return ((fname_or_url.indexOf('http:')==0)||(fname_or_url.indexOf('https:')==0));
+	}
+	if (FM) {
+		W.setFiringsModel(FM);
+	}
 }
+

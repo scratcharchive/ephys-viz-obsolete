@@ -1,5 +1,3 @@
-var d3 = require('d3');
-
 function TimeseriesWidget() {
   var that=this;
   this.div=function() {return m_div;};
@@ -425,21 +423,4 @@ function mv_default_channel_colors() {
     ret.push('rgb(32,64,32)');
     ret.push('rgb(32,32,112)');
     return ret;
-}
-
-function test(opts) {
-  opts.data=
-    {
-        "array": {
-            "prv": {
-                "original_checksum": "f917f9dfa1864aa9ebb72987d5f0a2f811d5e1a1",
-                "original_fcs": "head1000-8e16d93118ad0809b3c99740e0ad5176c8b0c7a8",
-                "original_path": "tet_K=30_1.mda",
-                "original_size": 257589652,
-                "prv_version": "0.11"
-            }
-        },
-        "options": {}
-    };
-  require('standard_views').show_timeseries(opts);
 }
