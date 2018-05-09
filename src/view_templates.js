@@ -15,23 +15,18 @@ function parse_url_params() {
 	return url_params;
 }
 var PARAMS=parse_url_params();
-console.log(PARAMS);
 
 var templates=null;
 
 window.open_view_templates=open_view_templates;
 function open_view_templates() {
-	console.log('open_view_templates');
 	var templates_path=PARAMS.templates;
-	console.log(templates_path);
 	load_templates(templates_path,function() {
 		start_app();
 	});
 
 	function load_templates(templates_path,callback) {
-		console.log(templates_path);
 		load_binary_file_part(templates_path,undefined,undefined,function(err,buf) {
-			console.log(buf);
 			if (err) {
 				throw new Error(`Error loading templates file: ${templates_path}`);
 				return;

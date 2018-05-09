@@ -64,7 +64,6 @@ function open_view_timeseries() {
 	}
 
 	function start_app() {
-		console.log('start_app');
 		var W=new TimeseriesWidget();
 		W.setTimeseriesModel(TSM);
 

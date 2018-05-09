@@ -1,31 +1,44 @@
 exports.TimeseriesWidget=TimeseriesWidget;
 
-function TimeseriesWidget() {
-  var that=this;
-  this.div=function() {return m_div;};
-  this.setTimeseriesModel=function(X) {setTimeseriesModel(X);};
-  this.setFiringsModel=function(X) {setFiringsModel(X);};
-  this.setSampleRate=function(s) {m_samplerate=s; schedule_refresh();};
-  this.setTimepointRange=function(range) {setTimepointRange(range);};
-  this.currentTimepoint=function() {return m_current_timepoint;};
-  this.setCurrentTimepoint=function(t) {m_current_timepoint=t; schedule_refresh();};
-  this.setSize=function(W,H) {m_width=W; m_height=H; schedule_refresh();};
-    
-  var m_timeseries_model=null;
-  var m_firings_model=null;
+function EVTimeDisplay(O) {
+  // O is the subclass
+  O=O||this;
+  O.div=function() {return m_div;};
+  O.setSampleRate=function(s) {m_samplerate=s; schedule_refresh();};
+  O.setTimepointRange=function(range) {setTimepointRange(range);};
+  O.currentTimepoint=function() {return m_current_timepoint;};
+  O.setCurrentTimepoint=function(t) {m_current_timepoint=t; schedule_refresh();};
+  O.setSize=function(W,H) {m_width=W; m_height=H; schedule_refresh();};
+  O.samplerate=function() {return m_samplerate;};
+  O.timepointRange=function() {return JSON.parse(JSON.stringify(m_timepoint_range));};
+  //O.setContext=function(context) {setContext(context);};
+  O.setContext=setContext;
+
+  // to be used by subclasses
+  O._setNumTimepoints=function(num) {m_num_timepoints=num;};
+  O._onRefresh=function(handler) {m_refresh_handlers.push(handler);};
+  O._scheduleRefresh=function() {schedule_refresh();};
+
+
+  function setContext(context) {
+    m_context=context;
+    m_context.onCurrentTemplateChanged(O._scheduleRefresh);
+  }
+  var m_context=null;
+
   var m_width=300;
   var m_height=300;
   var m_samplerate=20000;
-  var m_amp_factor=1;
   var m_timepoint_range=[0,100];
   var m_max_timepoint_range=15000;
   var m_min_timepoint_range=100;
   var m_current_timepoint=40;
-  var m_timeseries_stats=null; //{channel_means:[],channel_stdevs:[],overall_stdev:0};
   var m_drag_anchor=-1;
   var m_drag_anchor_timepoint_range;
   var m_dragging=false;
   var m_xscale=null;
+  var m_num_timepoints=0;
+  var m_refresh_handlers=[];
   
   var top_panel_height=35;
   var m_div=$(`
@@ -41,8 +54,6 @@ function TimeseriesWidget() {
     </div>
   </div>
   `);
-  m_div.find('#amp_down').attr('title','Scale amplitude down').click(amp_down);
-  m_div.find('#amp_up').attr('title','Scale amplitude up').click(amp_up);
   m_div.find('#time_zoom_in').attr('title','Time zoom in [mousewheel up]').click(time_zoom_in);
   m_div.find('#time_zoom_out').attr('title','Time zoom out [mousewheel down]').click(time_zoom_out);
   
@@ -89,14 +100,14 @@ function TimeseriesWidget() {
         if (m_drag_anchor_timepoint_range[0]+offset<0) {
           offset=-m_drag_anchor_timepoint_range[0];
         }
-        if (m_drag_anchor_timepoint_range[1]+offset>=m_timeseries_model.numTimepoints()) {
-          offset=-m_drag_anchor_timepoint_range[1]+m_timeseries_model.numTimepoints()-1;
+        if (m_drag_anchor_timepoint_range[1]+offset>=m_num_timepoints) {
+          offset=-m_drag_anchor_timepoint_range[1]+m_num_timepoints-1;
         }
         var t1=m_drag_anchor_timepoint_range[0]+offset;
         var t2=m_drag_anchor_timepoint_range[1]+offset;
         t1=Math.max(t1,0);
-        t2=Math.min(t2,m_timeseries_model.numTimepoints()-1);
-        that.setTimepointRange([t1,t2]);
+        t2=Math.min(t2,m_num_timepoints-1);
+        O.setTimepointRange([t1,t2]);
       }  
     }
   });
@@ -119,92 +130,31 @@ function TimeseriesWidget() {
     },msec);
   }
   function do_refresh() {
-    if (!m_timeseries_stats) {
-      schedule_compute_timeseries_stats();
-      return;
-    }
 
     var timer=new Date();
     
     var holder=m_div.find('#holder');
-    var TS=m_timeseries_model;
     
     var padding_left=70;
     var padding_right=20;
     var padding_top=40;
     var padding_bottom=60;
-    var spacing=0; //between channels
     
     var width=m_width;
     var height=m_height-top_panel_height;
     var samplerate=m_samplerate;
     
-    var M=TS.numChannels();
     holder.empty();
     
     var gg = d3.select(holder[0])
       .attr("width", width)
       .attr("height", height)
       .append("g");
-
-    /*
-    var gg = d3.select(holder[0])
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .append("g");
-      */
-    
-    /*
-    gg.call(d3.drag()
-    .on("start", dragstarted)
-    .on("drag", dragged)
-    .on("end", dragended));
-    
-    function dragstarted(a,b,c) {
-      var pt=d3.mouse(svg.node());
-      m_drag_anchor=pt[0];
-      m_drag_anchor_timepoint_range=JSON.parse(JSON.stringify(m_timepoint_range));
-      console.log ('dragstarted',m_drag_anchor);
-    }
-    function dragged(a,b,c) {
-      var pt=d3.mouse(svg.node());
-      var new_timepoint=pt[0];
-      console.log ('dragged',m_drag_anchor,new_timepoint);
-    }
-    function dragended(a,b,c) {
-      m_drag_anchor=-1;
-      console.log ('dragended',a,b,c);
-    }
-    */
     
     var t1=m_timepoint_range[0];
     var t2=m_timepoint_range[1];
-    var chunk=m_timeseries_model.getChunk({t1:t1,t2:t2+1});
-    if (!chunk) {
-      //unable to get chunk... perhaps it has not yet been loaded
-      schedule_refresh();
-      return;
-    }
 
-    var firings=null;
-    if (m_firings_model) {
-      firings=m_firings_model.getChunk({t1:t1,t2:t2+1});
-      if (!firings) {
-        //unable to get firings chunk... perhaps it has not yet been loaded
-        schedule_refresh();
-        return;
-      }
-    }
-    
-    var xdata=d3.range(t1,t2+1);
-    for (var i=0; i<xdata.length; i++) {
-      xdata[i]=xdata[i]/samplerate;
-    }
-    
-    var channel_colors=mv_default_channel_colors();
-
-    var xdomain=d3.extent(xdata);
+    var xdomain=[t1/samplerate,t2/samplerate];
     var xrange=[padding_left,width-padding_right];
     m_xscale = d3.scaleLinear().domain(xdomain).range(xrange);
     var x_axis=d3.axisBottom().scale(m_xscale).ticks(5);
@@ -225,67 +175,18 @@ function TimeseriesWidget() {
     }
     holder.find('.axis path, .axis line').css({fill:'none','shape-rendering':'crispEdges',stroke:'#BBB','stroke-width':1});
     holder.find('.axis text').css({fill:'#766','font-size':'12px'});
-    
-    var full_yrange=[padding_top,height-padding_bottom];
 
-    if (firings) {
-      var line=d3.line()
-        .x(function(d) {return m_xscale(d.x);})
-        .y(function(d) {return d.y;});
-      for (var i=0; i<firings.times.length; i++) {
-        var data0=[];
-        data0.push({x:firings.times[i]/samplerate,y:padding_top});
-        data0.push({x:firings.times[i]/samplerate,y:height-padding_bottom});
-        var path=gg.append("path") // Add the line path from the data
-          .attr("d", line(data0));
-        $(path.node()).css({fill:"none",stroke:'pink',"stroke-width":1});
-
-        gg.append("text")
-          .attr("transform",'translate('+(m_xscale(firings.times[i]/samplerate))+', '+(padding_top-10)+')')
-          .style("text-anchor", "middle")
-          .style('font-size','12px')
-          .style('fill','pink')
-          .text(firings.labels[i]);
-      }
-    }
-
-    for (var m=0; m<M; m++) {
-      var color=channel_colors[m%channel_colors.length];
-      var aa=full_yrange[0];
-      var bb=full_yrange[1]-full_yrange[0];
-      var hh=(bb-(M-1)*spacing)/M;
-      var y0range=[aa+m*(hh+spacing),aa+m*(hh+spacing)+hh];
-      var ymu=m_timeseries_stats.channel_means[m];
-      //var ysig=m_timeseries_stats.channel_stdevs[m];
-      var ysig=m_timeseries_stats.overall_stdev;
-      var y0domain=[ymu-7*ysig/m_amp_factor,ymu+7*ysig/m_amp_factor];
-      var y0scale = d3.scaleLinear().domain(y0domain).range(y0range);
-      var y0_axis=d3.axisLeft().scale(y0scale).ticks(0);
-      
-      gg.append("g") // Add the Y Axis
-        .attr("class", "y axis")
-        .attr("transform",'translate('+(padding_left-5)+', '+(0)+')')
-        .call(y0_axis);
-      
-      // text label for the y axis
-      gg.append('text')
-        .attr("transform",'translate('+(padding_left-15)+', '+(y0range[0]+y0range[1])/2+')')
-        .style("text-anchor", "end")
-        .text("Ch. "+(m+1));
-
-      var ydata0=d3.range(t2-t1+1); //todo: use something like d3.zeros
-      var data0=[];
-      for (var i=0; i<t2-t1+1; i++) {
-        if (t1+i<TS.numTimepoints()) {
-          data0.push({x:xdata[i],y:chunk.value(m,t1+i-t1)});
-        }
-      }
-      var line=d3.line()
-        .x(function(d) {return m_xscale(d.x);})
-        .y(function(d) {return y0scale(d.y);});
-      var path=gg.append("path") // Add the line path from the data
-        .attr("d", line(data0));
-      $(path.node()).css({fill:"none",stroke:color,"stroke-width":1});
+    for (var i in m_refresh_handlers) {
+      var info={
+        xscale:m_xscale,
+        padding_top:padding_top,
+        padding_bottom:padding_bottom,
+        padding_left:padding_left,
+        padding_right:padding_right,
+        width:width,
+        height:height
+      };
+      m_refresh_handlers[i](holder,gg,info);
     }
   }
   function setTimepointRange(range) {
@@ -308,6 +209,157 @@ function TimeseriesWidget() {
       var path=gg.append("path")
         .attr("d", line(data));
       $(path.node()).css({fill:"none",stroke:'lightgreen',"stroke-width":2});
+  }
+  function on_click_timepoint(t0) {
+    O.setCurrentTimepoint(Math.floor(t0));
+  }
+  function time_zoom_in() {
+    time_zoom(1.2);
+  }
+  function time_zoom_out() {
+    time_zoom(1/1.2);
+  }
+  function time_zoom(factor) {
+    var tmid=(m_timepoint_range[0]+m_timepoint_range[1])/2;
+    if (m_current_timepoint) tmid=m_current_timepoint;
+    var t1=Math.floor(tmid+(m_timepoint_range[0]-tmid)/factor);
+    var t2=Math.ceil(tmid+(m_timepoint_range[1]-tmid)/factor);
+    t1=Math.max(t1,0);
+    t2=Math.min(t2,m_num_timepoints-1);
+    O.setTimepointRange([t1,t2]);
+  } 
+}
+
+function TimeseriesWidget() {
+  EVTimeDisplay(this);
+  var that=this;
+  this.setTimeseriesModel=function(X) {setTimeseriesModel(X);};
+  this.setFiringsModel=function(X) {setFiringsModel(X);};
+    
+  var m_timeseries_model=null;
+  var m_firings_model=null;
+  var m_amp_factor=1;
+  var m_timeseries_stats=null; //{channel_means:[],channel_stdevs:[],overall_stdev:0};
+  var m_drag_anchor=-1;
+  var m_drag_anchor_timepoint_range;
+  var m_dragging=false;
+  var m_xscale=null;
+
+  //todo: move these html elements to this subclass
+  that.div().find('#amp_down').attr('title','Scale amplitude down').click(amp_down);
+  that.div().find('#amp_up').attr('title','Scale amplitude up').click(amp_up);
+ 
+  that._onRefresh(refresh_view);
+
+
+  function refresh_view(holder,gg,info) {
+    if (!m_timeseries_stats) {
+      schedule_compute_timeseries_stats();
+      return;
+    }
+
+    var spacing=0; //between channels
+
+    var timer=new Date();
+    
+    var TS=m_timeseries_model;
+    
+    var samplerate=that.samplerate();
+    
+    var M=TS.numChannels();
+    
+    var gg = d3.select(holder[0])
+      .append("g");
+
+    var timepoint_range=that.timepointRange();
+    
+    var t1=timepoint_range[0];
+    var t2=timepoint_range[1];
+    var chunk=m_timeseries_model.getChunk({t1:t1,t2:t2+1});
+    if (!chunk) {
+      //unable to get chunk... perhaps it has not yet been loaded
+      that._scheduleRefresh();
+      return;
+    }
+
+    var firings=null;
+    if (m_firings_model) {
+      firings=m_firings_model.getChunk({t1:t1,t2:t2+1});
+      if (!firings) {
+        //unable to get firings chunk... perhaps it has not yet been loaded
+        that._scheduleRefresh();
+        return;
+      }
+    }
+    
+    var xdata=d3.range(t1,t2+1);
+    for (var i=0; i<xdata.length; i++) {
+      xdata[i]=xdata[i]/samplerate;
+    }
+    
+    var channel_colors=mv_default_channel_colors();
+    
+    var full_yrange=[info.padding_top,info.height-info.padding_bottom];
+
+    if (firings) {
+      var line=d3.line()
+        .x(function(d) {return info.xscale(d.x);})
+        .y(function(d) {return d.y;});
+      for (var i=0; i<firings.times.length; i++) {
+        var data0=[];
+        data0.push({x:firings.times[i]/samplerate,y:info.padding_top});
+        data0.push({x:firings.times[i]/samplerate,y:info.height-info.padding_bottom});
+        var path=gg.append("path") // Add the line path from the data
+          .attr("d", line(data0));
+        $(path.node()).css({fill:"none",stroke:'pink',"stroke-width":1});
+
+        gg.append("text")
+          .attr("transform",'translate('+(info.xscale(firings.times[i]/samplerate))+', '+(info.padding_top-10)+')')
+          .style("text-anchor", "middle")
+          .style('font-size','12px')
+          .style('fill','pink')
+          .text(firings.labels[i]);
+      }
+    }
+
+    for (var m=0; m<M; m++) {
+      var color=channel_colors[m%channel_colors.length];
+      var aa=full_yrange[0];
+      var bb=full_yrange[1]-full_yrange[0];
+      var hh=(bb-(M-1)*spacing)/M;
+      var y0range=[aa+m*(hh+spacing),aa+m*(hh+spacing)+hh];
+      var ymu=m_timeseries_stats.channel_means[m];
+      //var ysig=m_timeseries_stats.channel_stdevs[m];
+      var ysig=m_timeseries_stats.overall_stdev;
+      var y0domain=[ymu-7*ysig/m_amp_factor,ymu+7*ysig/m_amp_factor];
+      var y0scale = d3.scaleLinear().domain(y0domain).range(y0range);
+      var y0_axis=d3.axisLeft().scale(y0scale).ticks(0);
+      
+      gg.append("g") // Add the Y Axis
+        .attr("class", "y axis")
+        .attr("transform",'translate('+(info.padding_left-5)+', '+(0)+')')
+        .call(y0_axis);
+      
+      // text label for the y axis
+      gg.append('text')
+        .attr("transform",'translate('+(info.padding_left-15)+', '+(y0range[0]+y0range[1])/2+')')
+        .style("text-anchor", "end")
+        .text("Ch. "+(m+1));
+
+      var ydata0=d3.range(t2-t1+1); //todo: use something like d3.zeros
+      var data0=[];
+      for (var i=0; i<t2-t1+1; i++) {
+        if (t1+i<TS.numTimepoints()) {
+          data0.push({x:xdata[i],y:chunk.value(m,t1+i-t1)});
+        }
+      }
+      var line=d3.line()
+        .x(function(d) {return info.xscale(d.x);})
+        .y(function(d) {return y0scale(d.y);});
+      var path=gg.append("path") // Add the line path from the data
+        .attr("d", line(data0));
+      $(path.node()).css({fill:"none",stroke:color,"stroke-width":1});
+    }
   }
   var compute_timeseries_stats_timestamp=0;
   var compute_timeseries_stats_scheduled=false;
@@ -380,41 +432,24 @@ function TimeseriesWidget() {
       S.channel_stdevs[m]=Math.sqrt(b/count-a*a/(count*count));
     }
     S.overall_stdev=Math.sqrt(overall_sumsqr/overall_count-overall_sum*overall_sum/(overall_count*overall_count));
-    schedule_refresh()
-  }
-  function setTimeseriesModel(X) {
-    m_timeseries_model=X;
-    schedule_refresh();
-  }
-  function setFiringsModel(X) {
-    m_firings_model=X;
-    schedule_refresh();
-  }
-  function on_click_timepoint(t0) {
-    that.setCurrentTimepoint(Math.floor(t0));
+    that._scheduleRefresh();
   }
   function amp_down() {
     m_amp_factor/=1.2;
-    schedule_refresh();
+    that._scheduleRefresh();
   }
   function amp_up() {
     m_amp_factor*=1.2;
-    schedule_refresh();
+    that._scheduleRefresh();
   }
-  function time_zoom_in() {
-    time_zoom(1.2);
+  function setTimeseriesModel(X) {
+    m_timeseries_model=X;
+    that._setNumTimepoints(X.numTimepoints());
+    that._scheduleRefresh();
   }
-  function time_zoom_out() {
-    time_zoom(1/1.2);
-  }
-  function time_zoom(factor) {
-    var tmid=(m_timepoint_range[0]+m_timepoint_range[1])/2;
-    if (m_current_timepoint) tmid=m_current_timepoint;
-    var t1=Math.floor(tmid+(m_timepoint_range[0]-tmid)/factor);
-    var t2=Math.ceil(tmid+(m_timepoint_range[1]-tmid)/factor);
-    t1=Math.max(t1,0);
-    t2=Math.min(t2,m_timeseries_model.numTimepoints()-1);
-    that.setTimepointRange([t1,t2]);
+  function setFiringsModel(X) {
+    m_firings_model=X;
+    that._scheduleRefresh();
   }
 }
 

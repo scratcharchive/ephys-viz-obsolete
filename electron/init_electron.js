@@ -8,7 +8,7 @@ const webContents = electron.webContents;
 const path = require('path');
 const fs = require('fs');
 
-exports.init_electron=function(url) {
+exports.init_electron=function(url,params) {
   const app = electron.app;
   const BrowserWindow = electron.BrowserWindow;
   let mainWindow = null;
@@ -21,17 +21,7 @@ exports.init_electron=function(url) {
     console.log ('ev-view-timeseries [timeseries].mda[.prv] --firings [firings].mda[.prv] --samplerate=[30000]');
   }
   */
-
-  var CLP=new CLParams(process.argv);
-  /*
-  if (!CLP.unnamedParameters[0]) {
-    print_usage();
-    app.quit();
-    return;
-  }
-  */
-  var params=CLP.namedParameters;
-  params.timeseries=params.timeseries||CLP.unnamedParameters[0];
+  
   //if (!exists_or_is_url(params.timeseries)) {
   //  throw new Error("File does not exist: "+params.timeseries);
   //}
@@ -148,40 +138,6 @@ exports.init_electron=function(url) {
     electron.Menu.setApplicationMenu(menu);
   }
 }
-
-function CLParams(argv) {
-  this.unnamedParameters=[];
-  this.namedParameters={};
-
-  var args=argv.slice(2);
-  for (var i=0; i<args.length; i++) {
-    var arg0=args[i];
-    if (arg0.indexOf('--')===0) {
-      arg0=arg0.slice(2);
-      var ind=arg0.indexOf('=');
-      if (ind>=0) {
-        this.namedParameters[arg0.slice(0,ind)]=arg0.slice(ind+1);
-      }
-      else {
-        this.namedParameters[arg0]='';
-        if (i+1<args.length) {
-          var str=args[i+1];
-          if (str.indexOf('-')!=0) {
-            this.namedParameters[arg0]=str;
-            i++;  
-          }
-        }
-      }
-    }
-    else if (arg0.indexOf('-')===0) {
-      arg0=arg0.slice(1);
-      this.namedParameters[arg0]='';
-    }
-    else {
-      this.unnamedParameters.push(arg0);
-    }
-  }
-};
 
 function ends_with(str,str2) {
   return (str.slice(str.length-str2.length)==str2);

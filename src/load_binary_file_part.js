@@ -5,7 +5,10 @@ function is_url(fname_or_url) {
 }
 
 function load_binary_file_part(url_or_path,start,end,callback) {
-	if (is_url(url_or_path)) {
+	if (!is_url(url_or_path)) {
+		window.electron_resources.load_binary_file_part(url_or_path,start,end,callback);
+	}	
+	else {
 		var url=url_or_path;
 		var headers={};
 		if ((start!==undefined)&&(end!==undefined)) {
@@ -31,9 +34,6 @@ function load_binary_file_part(url_or_path,start,end,callback) {
 				}
 			}
 		});
-	}
-	else {
-		callback('Not yet implemented: load_binary_file_part for path');
 	}
 }
 
