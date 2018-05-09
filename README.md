@@ -34,8 +34,8 @@ npm install
 View a timeseries dataset in mda format:
 
 ```
-ev-view-timeseries raw.mda
-ev-view-timeseries raw.mda.prv
+ev-view-timeseries --timeseries raw.mda
+ev-view-timeseries --timeseries raw.mda.prv
 ```
 
 See also the example(s) in the ephys-viz/examples directory
