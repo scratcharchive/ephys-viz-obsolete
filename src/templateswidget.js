@@ -221,7 +221,8 @@ function TemplatesWidget() {
       var aa=full_yrange[0];
       var bb=full_yrange[1]-full_yrange[0];
       var hh=(bb-(M-1)*spacing)/M;
-      var y0range=[aa+m*(hh+spacing),aa+m*(hh+spacing)+hh];
+      //var y0range=[aa+m*(hh+spacing),aa+m*(hh+spacing)+hh];
+      var y0range=[aa+m*(hh+spacing)+hh,aa+m*(hh+spacing)];
       var ymu=(m_templates_stats.channel_mins[m]+m_templates_stats.channel_maxs[m])/2;
       //var ysig=m_timeseries_stats.channel_stdevs[m];
       var ysig=m_templates_stats.overall_max_range;
