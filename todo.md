@@ -7,6 +7,8 @@ Todo:
 
 Completed:
 
+May, 2018
+- [X] implement ev-view-geometry geom.csv
 - [X] Create common base for timeserieswidget and firingeventswidget
 - [X] Open via electron by passing the name of the .html file
 - [X] Convert view_templates into web app

@@ -16,6 +16,9 @@ if (html_fname=='view_timeseries.html') {
 else if (html_fname=='view_templates.html') {
   params.templates=params.templates||CLP.unnamedParameters[1]||'';
 }
+else if (html_fname=='view_geometry.html') {
+  params.geometry=params.geometry||CLP.unnamedParameters[1]||'';
+}
 
 var url=`file://${__dirname}/../web/${html_fname}`;
 init_electron(url,params);

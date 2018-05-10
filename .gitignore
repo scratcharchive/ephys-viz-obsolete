@@ -1,2 +1,4 @@
 node_modules
 test.mda
+bundle.js
+bundle.js.map

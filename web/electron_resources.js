@@ -3,8 +3,9 @@ if (using_electron()) {
 	window.$ = window.jQuery = require('jquery');
 
 	window.electron_resources={
-		load_binary_file_part:_load_binary_file_part
-	};	
+		load_binary_file_part:_load_binary_file_part,
+		load_text_file:_load_text_file
+	};
 }
 
 function using_electron() {
@@ -33,6 +34,16 @@ function _load_binary_file_part(path,start,end,callback) {
 			}
 			callback(null,buffer.buffer);
 		});
+	});
+}
+
+function _load_text_file(path,callback) {
+	require('fs').readFile(path, 'utf8', function(err, data) {
+	  if (err) {
+	  	callback('Error loading text file: '+err);
+	  	return;
+	  }
+	  callback(null,data);
 	});
 }
 
