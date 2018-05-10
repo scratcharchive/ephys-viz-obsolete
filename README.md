@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/flatironinstitute/ephys-viz.svg?branch=master)](https://travis-ci.org/flatironinstitute/ephys-viz)
+
 # Ephys-Viz
 
 Various widgets for visualizing electrophysiology experiments and the results of spike sorting
