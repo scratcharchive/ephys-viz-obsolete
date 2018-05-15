@@ -1,5 +1,4 @@
-var Mda=require('./mda.js').Mda;
-var GeomWidget=require('./geomwidget.js').GeomWidget;
+var ClusterMetricsWidget=require('./clustermetricswidget.js').ClusterMetricsWidget;
 var load_text_file=require('./load_text_file.js').load_text_file;
 
 function parse_url_params() {
@@ -15,39 +14,39 @@ function parse_url_params() {
 }
 var PARAMS=parse_url_params();
 
-var GEOM=null;
+var METRICS=null;
 
-window.open_view_geometry=open_view_geometry;
-function open_view_geometry() {
-	var geometry=PARAMS.geometry;
-	load_geometry(geometry,function() {
+window.open_view_cluster_metrics=open_view_cluster_metrics;
+function open_view_cluster_metrics() {
+	var metrics=PARAMS.metrics;
+	load_metrics(metrics,function() {
 		start_app();
 	});
 
-	function load_geometry(geometry,callback) {
-		load_text_file(geometry,function(err,txt) {
+	function load_metrics(metrics,callback) {
+		load_text_file(metrics,function(err,txt) {
 			if (err) {
 				throw new Error(err);
 				return;
 			}
-			GEOM=txt;
+			METRICS=JSON.parse(txt);
 			callback();
 		});
 		
 	}
 
 	function start_app() {
-		var W=new GeomWidget();
-		W.setGeomText(GEOM);
+		var W=new ClusterMetricsWidget();
+		W.setObject(METRICS);
 
 		$('#content').append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {
 			//W.setSize($('#content').width(),$('#content').height());
-			var W=Math.min(400,$(window).width());
-			var H=Math.min(400,$(window).height());
-			W.setSize(W,H);
+			//var W=Math.min(600,$(window).width());
+			//var H=Math.min(600,$(window).height());
+			//W.setSize(W,H);
 		}
 	}
 }

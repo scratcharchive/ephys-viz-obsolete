@@ -1,0 +1,4 @@
+#!/bin/bash
+
+DIR=`dirname $0`
+$DIR/../node_modules/.bin/electron $DIR/../electron/openpage.js view_cluster_metrics.html $@
