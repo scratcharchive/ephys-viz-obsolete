@@ -43,27 +43,25 @@ function ClusterMetricsWidget(O) {
 			var th=$(`<th>${names[i]}</th>`);
 			header_row.append(th);
 		}
-
-		console.log(m_object);
+	
 		var clusters=m_object.clusters||[];
 		for (var i in clusters) {
 			var C=clusters[i];
 			var label0=C.label;
 			var metrics0=C.metrics||{};
-			console.log(i,label0,metrics0);
 			var row=$('<tr></tr>');
 			table.append(row);
 			row.append(`<td>${label0}</td>`)
 			for (var i in names) {
-				var val=format_val(metrics0[names[i]]||'');
-				var tr=$(`<td>${val}</td>`);
+				var val=format_val(metrics0[names[i]]||'0');
+                var tr=$(`<td>${val}</td>`);
 				row.append(tr);
 			}
 		}
 	}
 	function format_val(val) {
 		if (typeof(val)=='number') {
-			if (val==0) return val;
+            if (val==0) return '0';
 			if (val<0) {
 				return '-'+format_val(-val);
 			}
@@ -82,4 +80,3 @@ function ClusterMetricsWidget(O) {
 	}
 	do_refresh();
 }
-
