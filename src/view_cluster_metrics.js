@@ -30,7 +30,8 @@ function open_view_cluster_metrics() {
 				return;
 			}
 			METRICS=JSON.parse(txt);
-			callback();
+			console.log(METRICS);
+            callback();
 		});
 		
 	}
