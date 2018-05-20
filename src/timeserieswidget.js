@@ -84,29 +84,31 @@ function EVTimeDisplay(O) {
             alert("Ctrl-Z");
         }
         var code = (evt.keyCode ? evt.keyCode : evt.which);
-        // Up Key
-        if (code == 38){
-            amp_up();
+        switch (code) {
+            case 38: //Up
+                amp_up();
+                break;
+            case 40: //Down
+                amp_down();
+                break;
+            case 35: //End
+                var t2 = m_num_timepoints;
+                var t1 = t2-(m_timepoint_range[1] - m_timepoint_range[0]);
+                O.setTimepointRange([t1,t2]);
+                break;
+            case 36: //Home 
+                var t2 = m_timepoint_range[1] - m_timepoint_range[0];
+                O.setTimepointRange([0,t2]);
+                break;
+            case 37: //Left
+                move(-1);
+                break;
+            case 39: //Right
+                move(1);
+                break;
         }
-        if (code == 40){
-            amp_down();
-        }
-
-        // End Key
-        if (code == 35) {
-            var t2 = m_num_timepoints;
-            var t1 = t2-(m_timepoint_range[1] - m_timepoint_range[0]);
-            O.setTimepointRange([t1,t2]);
-        }
-        // Home Key
-        if (code == 36) {
-            var t2 = m_timepoint_range[1] - m_timepoint_range[0];
-            O.setTimepointRange([0,t2]);
-        }
-        // Stepped Moving: Left and Right Arrows 
-        if ((code == 37)|(code == 39)) {
-            var tdiff = (m_timepoint_range[1] - m_timepoint_range[0])/2;
-            if (code == 37) {tdiff = -tdiff}
+        function move(sign) { //Left or Right
+            var tdiff = sign*(m_timepoint_range[1] - m_timepoint_range[0])/2;
             m_timepoint_range[0] += tdiff;
             m_timepoint_range[1] += tdiff;
             if (m_timepoint_range[1] > m_num_timepoints){
