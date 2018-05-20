@@ -14,7 +14,7 @@ function EVTimeDisplay(O) {
     //O.setContext=function(context) {setContext(context);};
     O.setContext=setContext;
     //TODO
-    //O.setAmpFac=function(af) {O.m_amp_factor=af; schedule_refresh();};
+    O.setAmpFac=function(af) {O.m_amp_factor=af; schedule_refresh();};
 
     // to be used by subclasses
     O._setNumTimepoints=function(num) {m_num_timepoints=num;};
@@ -70,11 +70,11 @@ function EVTimeDisplay(O) {
 
     function amp_down() {
         m_amp_factor/=1.2;
-        //O.setAmpFac(m_amp_factor);
+        O.setAmpFac(m_amp_factor);
     }
     function amp_up() {
         m_amp_factor*=1.2;
-        //O.setAmpFac(m_amp_factor);
+        O.setAmpFac(m_amp_factor);
     }
 
 
@@ -292,7 +292,7 @@ function TimeseriesWidget() {
 
     var m_timeseries_model=null;
     var m_firings_model=null;
-    var m_amp_factor=1;
+    that.m_amp_factor=1;
     var m_timeseries_stats=null; //{channel_means:[],channel_stdevs:[],overall_stdev:0};
     var m_drag_anchor=-1;
     var m_drag_anchor_timepoint_range;
@@ -307,6 +307,7 @@ function TimeseriesWidget() {
 
 
     function refresh_view(holder,gg,info) {
+        m_amp_factor = that.m_amp_factor;
         if (!m_timeseries_stats) {
             schedule_compute_timeseries_stats();
             return;
@@ -490,11 +491,11 @@ function TimeseriesWidget() {
         that._scheduleRefresh();
     }
     function amp_down() {
-        m_amp_factor/=1.2;
+        that.m_amp_factor/=1.2;
         that._scheduleRefresh();
     }
     function amp_up() {
-        m_amp_factor*=1.2;
+        that.m_amp_factor*=1.2;
         that._scheduleRefresh();
     }
     function setTimeseriesModel(X) {
