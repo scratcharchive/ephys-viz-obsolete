@@ -215,6 +215,7 @@ function TemplatesWidget() {
     if (t2-t1<m_min_view_range) {
       return;
     }
+    //that.
     m_view_range=[t1,t2];
     that._scheduleRefresh();
   }

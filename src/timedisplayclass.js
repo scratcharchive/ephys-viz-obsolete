@@ -108,14 +108,15 @@ function EVTimeDisplay(O) {
         }
         function move(sign) { //Left or Right
             var tdiff = sign*(m_view_range[1] - m_view_range[0])/2;
-            m_view_range[0] += tdiff;
-            m_view_range[1] += tdiff;
-            if (m_view_range[1] > m_num_timepoints){
-                m_view_range[1] = m_num_timepoints;
-                m_view_range[0] = m_num_timepoints - 2*(tdiff);
-            }
-            O.setViewRange(m_view_range);
-        }; 
+            console.log(m_view_range);
+            [t1,t2] = m_view_range
+            t1 += tdiff;
+            t2 += tdiff;
+            t1 = Math.max(t1,0);
+            t2 = Math.max(t2, 10000-1);
+            console.log(t1,t2);
+            O.setViewRange([t1,t2]);
+        }
         console.log("you pressed key " + code);
         return false
     };
