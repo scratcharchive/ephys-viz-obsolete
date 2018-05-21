@@ -72,7 +72,7 @@ function EVTimeDisplay(O) {
         O.setAmpFac(m_amp_factor);
     }
     function amp_up() {
-        m_amp_factor*=1.2;
+       m_amp_factor*=1.2;
         O.setAmpFac(m_amp_factor);
     }
 
@@ -113,7 +113,14 @@ function EVTimeDisplay(O) {
             t1 += tdiff;
             t2 += tdiff;
             t1 = Math.max(t1,0);
-            t2 = Math.max(t2, 10000-1);
+            if (t1 == 0){
+                t2 = t1 + m_view_range[1]-m_view_range[0];
+            } else {
+                t2 = Math.min(t2, m_num_timepoints);
+            }
+            if (t2 == m_num_timepoints){
+                t1 = t2 - (m_view_range[1]-m_view_range[0]);
+            }
             console.log(t1,t2);
             O.setViewRange([t1,t2]);
         }
