@@ -13,7 +13,6 @@ var TSM=null;
 var FM=null;
 
 function view_timeseries(PARAMS) {
-	console.log(PARAMS);
 	var timeseries=PARAMS.timeseries||PARAMS.arg1;
 	var firings=PARAMS.firings;
 	load_timeseries_model(timeseries,function() {

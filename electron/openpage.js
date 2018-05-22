@@ -2,8 +2,6 @@
 
 var init_electron=require('./init_electron.js').init_electron;
 
-console.log(process.argv);
-
 var CLP=new CLParams(process.argv);
 var html_fname=CLP.unnamedParameters[0]||'';
 if (!html_fname) {

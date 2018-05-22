@@ -4,8 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo no tests yet",
-    "start": "cross-env NODE_ENV=development electron index.js",
-    "startp": "cross-env NODE_ENV=production electron index.js",
+    "start": "node ephysviz-webserver.js",
     "postinstall": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
     "webpack": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
     "pack": "build --dir",
@@ -21,6 +20,7 @@
   "dependencies": {
     "bootstrap": "^4.1.1",
     "d3": "^5.2.0",
+    "express": "^4.16.3",
     "jquery": "^3.3.1",
     "octicons": "4.3.0",
     "popper.js": "^1.14.3",
