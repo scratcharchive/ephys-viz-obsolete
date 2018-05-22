@@ -1,3 +1,5 @@
+exports.view_timeseries=view_timeseries;
+
 var Mda=require('./mda.js').Mda;
 var TimeseriesWidget=require('./timeserieswidget.js').TimeseriesWidget;
 
@@ -7,26 +9,12 @@ var FiringsModel=require('./firingsmodel.js').FiringsModel;
 // the following is not needed once we allow passing path to firings model:
 var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file_part;
 
-function parse_url_params() {
-	var match;
-	var pl     = /\+/g;  // Regex for replacing addition symbol with a space
-	var search = /([^&=]+)=?([^&]*)/g;
-	var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
-	var query  = window.location.search.substring(1);
-	var url_params = {};
-	while (match = search.exec(query))
-		url_params[decode(match[1])] = decode(match[2]);
-	return url_params;
-}
-var PARAMS=parse_url_params();
-
-
 var TSM=null;
 var FM=null;
 
-window.open_view_timeseries=open_view_timeseries;
-function open_view_timeseries() {
-	var timeseries=PARAMS.timeseries;
+function view_timeseries(PARAMS) {
+	console.log(PARAMS);
+	var timeseries=PARAMS.timeseries||PARAMS.arg1;
 	var firings=PARAMS.firings;
 	load_timeseries_model(timeseries,function() {
 		load_firings_model(firings,function() {

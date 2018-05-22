@@ -1,26 +1,14 @@
+exports.view_templates=view_templates;
+
 var Mda=require('./mda.js').Mda;
 var TemplatesWidget=TemplatesWidget=require('./templateswidget.js').TemplatesWidget;
 
 var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file_part;
 
-function parse_url_params() {
-	var match;
-	var pl     = /\+/g;  // Regex for replacing addition symbol with a space
-	var search = /([^&=]+)=?([^&]*)/g;
-	var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
-	var query  = window.location.search.substring(1);
-	var url_params = {};
-	while (match = search.exec(query))
-		url_params[decode(match[1])] = decode(match[2]);
-	return url_params;
-}
-var PARAMS=parse_url_params();
-
 var templates=null;
 
-window.open_view_templates=open_view_templates;
-function open_view_templates() {
-	var templates_path=PARAMS.templates;
+function view_templates(PARAMS) {
+	var templates_path=PARAMS.templates||PARAMS.arg1;
 	load_templates(templates_path,function() {
 		start_app();
 	});

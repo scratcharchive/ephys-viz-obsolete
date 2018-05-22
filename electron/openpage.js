@@ -2,6 +2,8 @@
 
 var init_electron=require('./init_electron.js').init_electron;
 
+console.log(process.argv);
+
 var CLP=new CLParams(process.argv);
 var html_fname=CLP.unnamedParameters[0]||'';
 if (!html_fname) {
@@ -9,21 +11,8 @@ if (!html_fname) {
 }
 
 var params=CLP.namedParameters;
-
-if (html_fname=='view_timeseries.html') {
-  params.timeseries=params.timeseries||CLP.unnamedParameters[1]||'';
-}
-else if (html_fname=='view_templates.html') {
-  params.templates=params.templates||CLP.unnamedParameters[1]||'';
-}
-else if (html_fname=='view_geometry.html') {
-  params.geometry=params.geometry||CLP.unnamedParameters[1]||'';
-}
-else if (html_fname=='view_cluster_metrics.html') {
-  params.metrics=params.metrics||CLP.unnamedParameters[1]||'';
-}
-else if (html_fname=='view_sort_comparison.html') {
-  params.comparison=params.comparison||CLP.unnamedParameters[1]||'';
+for (var jj=1; jj<CLP.unnamedParameters.length; jj++) {
+  params['arg'+(jj)]=CLP.unnamedParameters[jj];
 }
 
 var url=`file://${__dirname}/../web/${html_fname}`;

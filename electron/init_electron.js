@@ -27,7 +27,12 @@ exports.init_electron=function(url,params) {
   //}
   //var original_timeseries=params.timeseries;
 
-  var search_remote=('search_remote' in params);
+  if ('help' in params) {
+    show_help();
+    process.exit(0);
+  }
+
+  var search_remote=('remote' in params)||('search_remote' in params);
   resolve_prvs(params,{search_remote:search_remote});
 
   var query_string=require('querystring').stringify(params);
@@ -52,7 +57,7 @@ exports.init_electron=function(url,params) {
       y: y,
       width: width,
       height: height,
-      title: 'ephys-viz (view_timeseries) '//+original_timeseries
+      title: 'ephys-viz'//+original_timeseries
     });
 
     mainWindow.on('closed', () => {
