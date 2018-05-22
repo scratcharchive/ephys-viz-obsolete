@@ -7,10 +7,6 @@
 <!-- jquery -->
 <script src="../node_modules/jquery/dist/jquery.min.js"></script>
 
-<!--Electron stuff--
-<script src="load_resources.js"></script>
----->
-
 <!--Bootstrap-->
 <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
 
@@ -20,6 +16,9 @@
 
 <!--d3  -->
 <script src="../node_modules/d3/dist/d3.min.js"></script>
+
+<!-- ml-layout -->
+<link rel="stylesheet" href="ml-layout.css">
 
 <!--ephys-viz stuff
 <script src="timeserieswidget.js"></script>
@@ -38,8 +37,22 @@
 <script src="bundle.js"></script>
 
 <script type="text/javascript">
+
+	function parse_url_params() {
+		var match;
+		var pl     = /\+/g;  // Regex for replacing addition symbol with a space
+		var search = /([^&=]+)=?([^&]*)/g;
+		var decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); };
+		var query  = window.location.search.substring(1);
+		var url_params = {};
+		while (match = search.exec(query))
+			url_params[decode(match[1])] = decode(match[2]);
+		return url_params;
+	}
+	var PARAMS=parse_url_params();
+
 	$(document).ready(function() {
-		window.open_view_geometry();
+		window.init_ephys_viz(PARAMS);
 	});	
 </script>
 
