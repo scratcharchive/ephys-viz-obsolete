@@ -105,11 +105,17 @@ function EVTimeDisplay(O) {
             case 39: //Right
                 move(1);
                 break;
+            case 189: //minus
+                time_zoom_out();
+                break;
+            case 187: //plus (or equals)
+                time_zoom_in();
+                break;
         }
         function move(sign) { //Left or Right
             var tdiff = sign*(m_view_range[1] - m_view_range[0])/2;
-            console.log(m_view_range);
             [t1,t2] = m_view_range
+            var t1_old=t1;
             t1 += tdiff;
             t2 += tdiff;
             t1 = Math.max(t1,0);
@@ -121,11 +127,12 @@ function EVTimeDisplay(O) {
             if (t2 == m_num_timepoints){
                 t1 = t2 - (m_view_range[1]-m_view_range[0]);
             }
-            console.log(t1,t2);
+            if (m_current_timepoint>=0) {
+                O.setCurrentTimepoint(m_current_timepoint+(t1-t1_old));
+            }
             O.setViewRange([t1,t2]);
         }
         console.log("you pressed key " + code);
-        return false
     };
 
 

@@ -123,7 +123,8 @@ function TimeseriesWidget() {
             var data0=[];
             for (var i=0; i<t2-t1+1; i++) {
                 if (t1+i<TS.numTimepoints()) {
-                    data0.push({x:xdata[i],y:chunk.value(m,t1+i-t1)});
+                    //Note that sometimes the value was coming out as NaN. Not sure why. Debugged for a long time. Just replacing with zero for now.
+                    data0.push({x:xdata[i],y:chunk.value(m,t1+i-t1)||0});
                 }
             }
             var line=d3.line()
