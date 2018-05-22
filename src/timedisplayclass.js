@@ -49,6 +49,7 @@ function EVTimeDisplay(O) {
         <button class="btn" id=amp_up><span class="octicon octicon-arrow-up"></span></button>
         <button class="btn" id=time_zoom_in><span class="octicon octicon-plus"></span></button>
         <button class="btn" id=time_zoom_out><span class="octicon octicon-dash"></span></button>
+        <a id=view_todo_list href=# style="font-size:9px" title="View todo list for this widget">todo</a>
         </div>
         <div class="ml-vlayout-item" style="flex:1">
         <svg id=holder></svg>
@@ -57,6 +58,7 @@ function EVTimeDisplay(O) {
         `);
     m_div.find('#time_zoom_in').attr('title','Time zoom in [mousewheel up]').click(time_zoom_in);
     m_div.find('#time_zoom_out').attr('title','Time zoom out [mousewheel down]').click(time_zoom_out);
+    m_div.find('#view_todo_list').click(view_todo_list);
 
     m_div.bind('mousewheel', function(e){
         if(e.originalEvent.wheelDelta /120 > 0) {
@@ -66,6 +68,16 @@ function EVTimeDisplay(O) {
             time_zoom_out(); //scrolling down
         }
     });
+
+    function view_todo_list() {
+        console.log(`
+            * Document all the keyboard shortcuts (left, right, zoom in, zoom out, vertical scale, home, end, etc)
+            * Make buttons for all the above actions
+            * Handle very large channel counts (or actually that should be dealt with at a higher level -- let this widget just do what it does)            
+            * Document how to set up a developement environment for ephys-viz so others can contribute to building the widgets
+        `);
+        alert('Look at the developer console. You should see a list of todo items.');
+    }
 
     function amp_down() {
         m_amp_factor/=1.2;
