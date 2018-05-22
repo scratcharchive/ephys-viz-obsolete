@@ -1,18 +1,21 @@
+var TimeDisplay=require('./timedisplayclass.js').TimeDisplay
+
 exports.TemplatesWidget=TemplatesWidget;
 
 function TemplatesWidget() {
+  TimeDisplay(this);  
   var that=this;
   this.div=function() {return m_div;};
   this.setTemplates=function(X) {setTemplates(X);};
   this.setViewRange=function(range) {setViewRange(range);};
   this.currentTemplateIndex=function() {return m_current_template_index;};
-  this.setCurrentTemplateIndex=function(ii) {m_current_template_index=ii; schedule_refresh();};
-  this.setSize=function(W,H) {m_width=W; m_height=H; schedule_refresh();};
+  this.setCurrentTemplateIndex=function(ii) {m_current_template_index=ii; that._scheduleRefresh();};
+  this.setSize=function(W,H) {m_width=W; m_height=H; that._scheduleRefresh();};
     
   var m_templates=null;
   var m_width=300;
   var m_height=300;
-  var m_amp_factor=1;
+  that.m_amp_factor=1;
   var m_view_range=[-1,-1];
   var m_current_template_index=-1;
   var m_templates_stats=null;
@@ -53,76 +56,17 @@ function TemplatesWidget() {
     }
   });
 
-  //var svg = d3.select(holder.find('svg')[0]);
-  var svg = d3.select(m_div.find('svg')[0]);
-  svg.on("mousedown", function() {
-    if (!m_xscale) return;
-    window.event.preventDefault();
-    var pt=d3.mouse(this);
-    var t0=m_xscale.invert(pt[0]);
-    m_drag_anchor=pt[0];
-    m_drag_anchor_view_range=JSON.parse(JSON.stringify(m_view_range));
-    //on_click_timepoint(t0);
-  });
-  svg.on("mouseup", function(evt) {
-    if (!m_xscale) return;
-    window.event.preventDefault();
-    var pt=d3.mouse(this);
-    var t0=m_xscale.invert(pt[0]);
-    if (!m_dragging) {
-      on_click_timepoint(t0);
-    }
-    m_drag_anchor=-1;
-    m_dragging=false;
-  });
-  svg.on("mousemove", function() {
-    if (!m_xscale) return;
-    var pt=d3.mouse(this);
-    var t0=m_xscale.invert(pt[0]);
-    if (m_drag_anchor>=0) {
-      if (Math.abs(m_drag_anchor-pt[0])>5) {
-        m_dragging=true;
-        var drag_anchor_t0=m_xscale.invert(m_drag_anchor);
-        var offset=Math.floor(drag_anchor_t0-t0);
-        if (m_drag_anchor_view_range[0]+offset<0) {
-          offset=-m_drag_anchor_view_range[0];
-        }
-        if (m_drag_anchor_view_range[1]+offset>=num_timepoints()) {
-          offset=-m_drag_anchor_view_range[1]+num_timepoints()-1;
-        }
-        var t1=m_drag_anchor_view_range[0]+offset;
-        var t2=m_drag_anchor_view_range[1]+offset;
-        t1=Math.max(t1,0);
-        t2=Math.min(t2,num_timepoints()-1);
-        that.setViewRange([t1,t2]);
-      }  
-    }
-  });
-  svg.on("mouseleave", function() {
-    m_drag_anchor=-1;
-  });
- 
-  var refresh_timestamp=0;
-  var refresh_scheduled=false;
-  function schedule_refresh() {
-    if (refresh_scheduled) return;
-    refresh_scheduled=true;
-    var msec=100;
-    var elapsed=(new Date())-refresh_timestamp;
-    if (elapsed>100) msec=0;
-    setTimeout(function() {
-      refresh_scheduled=false;
-      do_refresh();
-      refresh_timestamp=new Date();
-    },msec);
-  }
-  function do_refresh() {
+  that._onRefresh(refresh_view);
+
+
+  function refresh_view() {
     if (!m_templates_stats) {
       schedule_compute_templates_stats();
       return;
     }
-
+    m_amp_factor=that.m_amp_factor;
     var timer=new Date();
+    console.log(m_amp_factor, that.m_amp_factor);
     
     var holder=m_div.find('#holder');
     
@@ -271,8 +215,9 @@ function TemplatesWidget() {
     if (t2-t1<m_min_view_range) {
       return;
     }
+    //that.
     m_view_range=[t1,t2];
-    schedule_refresh();
+    that._scheduleRefresh();
   }
   function draw_current_timepoint(gg,xscale,yscale) {
     var t0=current_timepoint();
@@ -344,23 +289,23 @@ function TemplatesWidget() {
       S.channel_mins.push(minval);
       S.channel_maxs.push(maxval);
     }
-    schedule_refresh()
+    that._scheduleRefresh()
   }
   function setTemplates(X) {
     m_templates=X;
-    schedule_refresh();
+    that._scheduleRefresh();
   }
   function on_click_timepoint(t0) {
     var ii=Math.floor(t0/(m_clip_size+m_spacing));
     that.setCurrentTemplateIndex(ii);
   }
   function amp_down() {
-    m_amp_factor/=1.2;
-    schedule_refresh();
+    that.m_amp_factor/=1.2;
+    that._scheduleRefresh();
   }
   function amp_up() {
-    m_amp_factor*=1.2;
-    schedule_refresh();
+    that.m_amp_factor*=1.2;
+    that._scheduleRefresh();
   }
   function time_zoom_in() {
     time_zoom(1.2);

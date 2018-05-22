@@ -58,7 +58,7 @@ function view_timeseries(PARAMS) {
 		W.setSampleRate(Number(PARAMS.samplerate)||1);
 
 		W.setSize(400,400);
-		W.setTimepointRange([0,1000]);
+		W.setViewRange([0,1000]);
 		$('#content').append(W.div());
 		$(window).resize(update_size);
 		update_size();
