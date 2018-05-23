@@ -71,10 +71,16 @@ function EVTimeDisplay(O) {
 
     function view_todo_list() {
         console.log(`
+            * Label the horizontal (time) axis
+            * Somehow indicate the vertical scale
+            * Status bar showing information about the current timepoint, and some other stuff
+            * Title of the dataset should be displayed somewhere (this should be an input parameter)
+            * Improve the input query parameters somehow (I don't like having url's in the query parameters)
             * Document all the keyboard shortcuts (left, right, zoom in, zoom out, vertical scale, home, end, etc)
             * Make buttons for all the above actions
             * Handle very large channel counts (or actually that should be dealt with at a higher level -- let this widget just do what it does)            
             * Document how to set up a developement environment for ephys-viz so others can contribute to building the widgets
+            * Make this smartphone/touchscreen friendly by implementing scrolling and zooming based on screen touches
         `);
         alert('Look at the developer console. You should see a list of todo items.');
     }
