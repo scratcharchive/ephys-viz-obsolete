@@ -70,7 +70,7 @@ function EVTimeDisplay(O) {
     });
 
     function view_todo_list() {
-        console.log(`
+        console.log (`
             * Label the horizontal (time) axis
             * Somehow indicate the vertical scale
             * Status bar showing information about the current timepoint, and some other stuff
@@ -150,7 +150,7 @@ function EVTimeDisplay(O) {
             }
             O.setViewRange([t1,t2]);
         }
-        console.log("you pressed key " + code);
+        console.log ("you pressed key " + code);
     };
 
 

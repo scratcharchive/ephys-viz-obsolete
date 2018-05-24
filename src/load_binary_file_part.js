@@ -5,7 +5,6 @@ Alex M: I know this is silly... I should be finding the protocol properly, but o
 */
 
 function is_url(fname_or_url) {
-	if (is_dat(fname_or_url)) return true;
 	return ((fname_or_url.indexOf('http://')==0)||(fname_or_url.indexOf('https://')==0));
 }
 
@@ -51,96 +50,13 @@ function load_binary_file_part(url_or_dat_or_path,start,end,callback) {
 		}
 		var dat_key=dat.slice(0,ind);
 		var file_path=dat.slice(ind+1);
-		load_binary_file_part_from_dat(dat_key,file_path,callback);
+		window.electron_resources.load_binary_file_part_from_dat(dat_key,file_path,start,end,callback);
 	}
 	else {
 		var path=url_or_dat_or_path;
 		window.electron_resources.load_binary_file_part(path,start,end,callback);
 	}
 }
-
-//var Dat=require('dat-js');
-var concat=require('concat-stream');
-var s_loaded_dats={};
-var s_failed_dats={};
-function _load_dat(dat_key,callback) {
-	if (dat_key in s_loaded_dats) {
-		callback(null,s_loaded_dats[dat_key]);
-		return;
-	}
-	if (dat_key in s_failed_dats) {
-		callback('Previously failed. Not retrying.');
-		return;
-	}
-	var dat_path=__dirname+'/does-not-exist'; // Note: we don't expect anything to get written here
-	Dat(dat_path, {
-		key:dat_key,
-		sparse:true,
-		temp:true
-	}, function (err, dat) {
-		if (err) {
-			s_failed_dats[dat_key]=true;
-			callback(`Error initializing dat: `+err.message);
-			return;
-		}
-		console.log (`Joining network (${dat_key})...`);
-		dat.joinNetwork(function(err) {
-			if (err) {
-				s_failed_dats[dat_key]=true;
-				callback('Error joining network: '+err.message);
-				return;
-			}
-			console.log('joined');
-			s_loaded_dats[dat_key]=dat;
-			callback(null,dat);
-		});
-	});
-}
-
-function load_binary_file_part_from_dat(dat_key,file_path,start,end,callback) {
-	console.log('load_binary_file_part_from_dat',dat_key,file_path);
-	var dat = Dat();
-	dat.add(dat_key, function (repo) {
-	  var readStream = repo.archive.createFileReadStream(file_path);
-	  concat(readStream, function (data) {
-	    console.log(data)
-	    callback(null,data);
-	  });
-	});
-	/*
-	_load_dat(dat_key,function(err,dat) {
-		console.log('test A',err,dat);
-		if (err) {
-			callback('Error loading dat: '+err);
-			return;
-		}
-		console.log('creating read stream...');
-		var stream = dat.archive.createReadStream(file_path, {
-			start:start,
-			end:end			
-		});
-		console.log(stream);
-		var chunks = [];
-		stream.on('data', function (chunk) {
-			console.log('on_data');
-		    chunks.push(chunk);
-		});
-		stream.on('end', function () {
-			console.log('on_end');
-		  	var buf=Buffer.concat(bufs);
-		    if (callback) callback(null,buf.buffer);
-		    callback=null;
-		});
-		stream.on('error',function(err) {
-			console.log('on_error');
-			if (callback) callback('Error: '+err);
-			callback=null;
-		});
-		console.log('test');
-	});
-	*/
-}
-
 
 $.ajaxTransport("+binary", function(options, originalOptions, jqXHR){
     // check for conditions and support for blob / arraybuffer response type
