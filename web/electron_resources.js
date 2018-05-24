@@ -1,3 +1,5 @@
+
+
 if (using_electron()) {
 	// It is annoying that we need to do this, but apparently necessary
 	window.$ = window.jQuery = require('jquery');
