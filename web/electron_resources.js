@@ -62,11 +62,11 @@ function _load_dat(dat_key,callback) {
 		callback('Previously failed. Not retrying.');
 		return;
 	}
-	var dat_path=__dirname+'/../does-exist'; // Note: we don't expect anything to get written here
+	var dat_path=__dirname+'/../does-not-exist'; // Note: we don't expect anything to get written here
 	Dat(dat_path, {
 		key:dat_key,
 		sparse:true,
-		temp:false
+		temp:true
 	}, function (err, dat) {
 		if (err) {
 			s_failed_dats[dat_key]=true;
