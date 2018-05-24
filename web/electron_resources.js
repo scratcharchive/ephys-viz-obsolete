@@ -73,14 +73,14 @@ function _load_dat(dat_key,callback) {
 			callback(`Error initializing dat: `+err.message);
 			return;
 		}
-		console.log (`Joining network (${dat_key})...`);
+		console.log (`Joining dat network (${dat_key})...`);
 		dat.joinNetwork(function(err) {
 			if (err) {
 				s_failed_dats[dat_key]=true;
 				callback('Error joining network: '+err.message);
 				return;
 			}
-			console.log('joined');
+			console.log ('joined dat network.');
 			s_loaded_dats[dat_key]=dat;
 			callback(null,dat);
 		});
@@ -88,44 +88,33 @@ function _load_dat(dat_key,callback) {
 }
 
 function _load_binary_file_part_from_dat(dat_key,file_path,start,end,callback) {
-	console.log('load_binary_file_part_from_dat',dat_key,file_path,start,end);
 	_load_dat(dat_key,function(err,dat) {
-		console.log('test A',err,dat);
 		if (err) {
 			callback('Error loading dat: '+err);
 			return;
 		}
-		console.log('creating read stream...',start,end);
 		var stream = dat.archive.createReadStream(file_path, {
 			start:start,
 			end:end-1
 		});
 		var chunks = [];
 		stream.on('data', function (chunk) {
-			console.log('on_data');
 		    chunks.push(chunk);
 		});
 		stream.on('end', function () {
-			console.log('on_end');
 		  	var buf=Buffer.concat(chunks);
 		  	//Not sure exactly why the following is necessary:
 		  	var buf2=new Uint8Array(buf.length);
 		  	for (var i=0; i<buf.length; i++) {
 		  		buf2[i]=buf[i];
 		  	}
-		  	console.log(buf);
-		  	console.log(buf2);
-		  	window.debug_buf=buf;
-		  	window.debug_buf2=buf2;
-		    if (callback) callback(null,buf2.buffer);
-		    callback=null;
+	  		if (callback) callback(null,buf2.buffer);
+	    	callback=null;
 		});
 		stream.on('error',function(err) {
-			console.log('on_error');
 			if (callback) callback('Error: '+err);
 			callback=null;
 		});
-		console.log('test');
 	});
 }
 
