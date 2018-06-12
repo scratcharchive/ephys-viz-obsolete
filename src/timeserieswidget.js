@@ -120,7 +120,7 @@ function TimeseriesWidget() {
             gg.append('text')
                 .attr("transform",'translate('+(info.padding_left-15)+', '+(y0range[0]+y0range[1])/2+')')
                 .style("text-anchor", "end")
-                .text("Ch. "+(m+1));
+                .text("Ch. "+channels[m]);
 
             var ydata0=d3.range(t2-t1+1); //todo: use something like d3.zeros
             var data0=[];
