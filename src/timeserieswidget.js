@@ -6,6 +6,7 @@ function TimeseriesWidget() {
     var that=this;
     this.setTimeseriesModel=function(X) {setTimeseriesModel(X);};
     this.setFiringsModel=function(X) {setFiringsModel(X);};
+    this.setChannels=function(channels) {setChannels(channels);};
 
     var m_timeseries_model=null;
     var m_firings_model=null;
@@ -15,6 +16,7 @@ function TimeseriesWidget() {
     var m_drag_anchor_view_range;
     var m_dragging=false;
     var m_xscale=null;
+    var m_channels=null;
 
     //todo: move these html elements to this subclass
     that.div().find('#amp_down').attr('title','Scale amplitude down').click(amp_down);
@@ -38,7 +40,8 @@ function TimeseriesWidget() {
 
         var samplerate=that.samplerate();
 
-        var M=TS.numChannels();
+        var channels=get_channels();
+        var M=channels.length;
 
         var gg = d3.select(holder[0])
             .append("g");
@@ -124,7 +127,7 @@ function TimeseriesWidget() {
             for (var i=0; i<t2-t1+1; i++) {
                 if (t1+i<TS.numTimepoints()) {
                     //Note that sometimes the value was coming out as NaN. Not sure why. Debugged for a long time. Just replacing with zero for now.
-                    data0.push({x:xdata[i],y:chunk.value(m,t1+i-t1)||0});
+                    data0.push({x:xdata[i],y:chunk.value(channels[m]-1,t1+i-t1)||0});
                 }
             }
             var line=d3.line()
@@ -149,8 +152,18 @@ function TimeseriesWidget() {
             compute_timeseries_stats_timestamp=new Date();
         },msec);
     }
+    function get_channels() {
+        if (m_channels) return m_channels;
+        var channels=[];
+        for (var mm=1; mm<=m_timeseries_model.numChannels(); mm++) {
+            channels.push(mm);
+        }
+        return channels;
+    }
     function do_compute_timeseries_stats() {
-        var M=m_timeseries_model.numChannels();
+        var channels=get_channels();
+        var M=channels.length;
+        //var M=m_timeseries_model.numChannels();
         var N=m_timeseries_model.numTimepoints();
         m_timeseries_stats={};
         var S=m_timeseries_stats;
@@ -172,8 +185,8 @@ function TimeseriesWidget() {
         var overall_count=0,overall_sum=0,overall_sumsqr=0;
         for (var n=0; n<chunk.N2(); n++) {
             count++;
-            for (var m=0; m<chunk.N1(); m++) {
-                var val=chunk.value(m,n);
+            for (var m=0; m<M; m++) {
+                var val=chunk.value(channels[m]-1,n);
                 S.channel_means[m]+=val; //sum for now
                 S.channel_stdevs[m]+=val*val; //sum of squares for now
                 overall_sum+=val;
@@ -223,6 +236,10 @@ function TimeseriesWidget() {
     }
     function setFiringsModel(X) {
         m_firings_model=X;
+        that._scheduleRefresh();
+    }
+    function setChannels(channels) {
+        m_channels=JSON.parse(JSON.stringify(channels));
         that._scheduleRefresh();
     }
 }

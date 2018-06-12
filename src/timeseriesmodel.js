@@ -3,7 +3,7 @@ exports.TimeseriesModel=TimeseriesModel;
 var Mda=require('./mda.js').Mda;
 var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file_part;
 
-function TimeseriesModel(path_url_or_mda) {
+function TimeseriesModel(path_url_or_mda,params) {
 	var that=this;
 
 	if (typeof(path_url_or_mda)!='string') {
@@ -128,6 +128,19 @@ function TimeseriesModel(path_url_or_mda) {
 		return m_header.dims[1];
 	}
 	function initialize(callback) {
+
+		if (params.num_channels) {
+			var nc=Number(params.num_channels);
+			m_header={};
+			m_header.num_bytes_per_entry=2;
+			m_header.num_dims=2;
+			m_header.dims=[nc,1000];
+			m_header.dtype='int16';
+			m_header.header_size=0;
+			callback(null);
+			return;
+		}
+
 		m_header=null;
 		load_binary_file_part(path_or_url,0,64,function(err,buf) {
 			if (err) {

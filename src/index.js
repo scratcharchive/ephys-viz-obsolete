@@ -17,7 +17,6 @@ window.init_ephys_viz=function(PARAMS) {
 	else {
 		throw Error('Unknown view: '+PARAMS.view);
 	}
-
 }
 
 /*

@@ -15,14 +15,14 @@ var FM=null;
 function view_timeseries(PARAMS) {
 	var timeseries=PARAMS.timeseries||PARAMS.arg1;
 	var firings=PARAMS.firings;
-	load_timeseries_model(timeseries,function() {
+	load_timeseries_model(timeseries,PARAMS,function() {
 		load_firings_model(firings,function() {
 			start_app();
 		});
 	});
 
-	function load_timeseries_model(timeseries,callback) {
-		TSM=new TimeseriesModel(timeseries);
+	function load_timeseries_model(timeseries,PARAMS,callback) {
+		TSM=new TimeseriesModel(timeseries,PARAMS);
 		TSM.initialize(function(err) {
 			if (err) {
 				throw new Error(`Error initializing timeseries model for ${timeseries}: ${err}`);
@@ -55,6 +55,14 @@ function view_timeseries(PARAMS) {
 		W.setTimeseriesModel(TSM);
 
 		W.setSampleRate(Number(PARAMS.samplerate)||1);
+		if (PARAMS.channels) {
+			var list=PARAMS.channels.split(',');
+			channels=[];
+			for (var i in list) {
+				channels.push(Number(list[i]));
+			}
+			W.setChannels(channels);
+		}
 
 		W.setSize(400,400);
 		W.setViewRange([0,1000]);
