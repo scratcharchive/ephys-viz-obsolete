@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 exports.init_electron=function(url,params) {
+  console.info('init_electron',url,params);
   const app = electron.app;
   const BrowserWindow = electron.BrowserWindow;
   let mainWindow = null;
@@ -36,7 +37,8 @@ exports.init_electron=function(url,params) {
   resolve_prvs(params,{search_remote:search_remote});
 
   var query_string=require('querystring').stringify(params);
-  var url0=`${url}?${query_string}`
+  var url0=`${url}?${query_string}`;
+  console.info(url0);
 
   function createWindow() {
     const {width: screenWidth, height: screenHeight} = electron.screen.getPrimaryDisplay().workAreaSize;

@@ -1,18 +1,19 @@
 exports.TimeseriesModel=TimeseriesModel;
 
-var Mda=require('./mda.js').Mda;
-var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file_part;
+const Mda=require(__dirname+'/mda.js').Mda;
+const KBClient=require(__dirname+'/kbclient.js').KBClient;
 
-function TimeseriesModel(path_url_or_mda,params) {
+function TimeseriesModel(path_or_mda,params) {
 	var that=this;
 
-	if (typeof(path_url_or_mda)!='string') {
+	if (typeof(path_or_mda)!='string') {
 		//in memory
-		var X=path_url_or_mda;
+		var X=path_or_mda;
 		this.initialize=function(callback) {callback(null);};
 		this.getChunk=function(opts) {return getChunkFromX(opts);};
 		this.numChannels=function() {return X.N1();};
 		this.numTimepoints=function() {return X.N2();};
+		this.dtype=function() {return 'in-memory';};
 
 		function getChunkFromX(opts) {
 			return X.subArray(0,opts.t1,X.N1(),opts.t2-opts.t1+1);
@@ -20,12 +21,13 @@ function TimeseriesModel(path_url_or_mda,params) {
 		return;
 	}
 
-	var path_or_url=path_url_or_mda;
+	let m_path=path_or_mda;
 
 	this.initialize=function(callback) {initialize(callback);};
 	this.getChunk=function(opts) {return getChunk(opts);};
 	this.numChannels=function() {return numChannels();};
 	this.numTimepoints=function() {return numTimepoints();};
+	this.dtype=function() {return dtype();};
 
 	var m_header=null;
 
@@ -34,7 +36,7 @@ function TimeseriesModel(path_url_or_mda,params) {
 
 	function load_chunk(i) {
 		if (!m_header) {
-			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			throw new Error('Cannot use TimeseriesModel before it has been initialized');
 			return;
 		}
 		if (m_loaded_chunks[i]) {
@@ -51,6 +53,8 @@ function TimeseriesModel(path_url_or_mda,params) {
 	}
 
 	function do_load_chunk(i,callback) {
+		let KBC=new KBClient();
+
 		var M=that.numChannels();
 		var i1=M*i*m_chunk_size;
 		var i2=M*(i+1)*m_chunk_size;
@@ -58,9 +62,9 @@ function TimeseriesModel(path_url_or_mda,params) {
 			i2=M*that.numTimepoints();
 		var pos1=m_header.header_size+i1*m_header.num_bytes_per_entry;
 		var pos2=m_header.header_size+i2*m_header.num_bytes_per_entry;
-		load_binary_file_part(path_or_url,pos1,pos2,function(err,buf) {
+		KBC.readBinaryFilePart(m_path,{start:pos1,end:pos2},function(err,buf) {
 			if (err) {
-				console.error(`Error reading part of file ${path_or_url}: `+err);
+				console.error(`Error reading part of file ${m_path}: `+err);
 				return;
 			}
 			var dtype=m_header.dtype;
@@ -87,7 +91,7 @@ function TimeseriesModel(path_url_or_mda,params) {
 
 	function getChunk(opts) {
 		if (!m_header) {
-			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
+			throw new Error('Cannot use TimeseriesModel before it has been initialized');
 			return;
 		}
 		var i1=Math.floor(opts.t1/m_chunk_size);
@@ -115,34 +119,43 @@ function TimeseriesModel(path_url_or_mda,params) {
 	}
 	function numChannels() {
 		if (!m_header) {
-			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
-			return;
+			throw new Error('Cannot use TimeseriesModel before it has been initialized');
 		}
 		return m_header.dims[0];
 	}
 	function numTimepoints() {
 		if (!m_header) {
-			throw new Error('Cannot use TimeseriesModel_Memory before it has been initialized');
-			return;
+			throw new Error('Cannot use TimeseriesModel before it has been initialized');
 		}
 		return m_header.dims[1];
 	}
+	function dtype() {
+		if (!m_header) {
+			throw new Error('Cannot use TimeseriesModel before it has been initialized');
+		}
+		return m_header.dtype;
+	}
 	function initialize(callback) {
-
-		if (params.num_channels) {
+		if (params.format=='raw') {
+			if ((!params.num_channels)||(!params.num_samples)) {
+				callback('format is raw, but num_channels or num_samples not given.');
+				return;
+			}
 			var nc=Number(params.num_channels);
 			m_header={};
 			m_header.num_bytes_per_entry=2;
 			m_header.num_dims=2;
-			m_header.dims=[nc,1000];
+			m_header.dims=[nc,Number(params.num_samples)];
 			m_header.dtype='int16';
 			m_header.header_size=0;
 			callback(null);
 			return;
 		}
 
+		let KBC=new KBClient();
+
 		m_header=null;
-		load_binary_file_part(path_or_url,0,64,function(err,buf) {
+		KBC.readBinaryFilePart(m_path,{start:0,end:64},function(err,buf) {
 			if (err) {
 				callback(err);
 				return;
