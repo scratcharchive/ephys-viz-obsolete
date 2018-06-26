@@ -1,11 +1,8 @@
 //var Dat;
-const async = require('async');
 
 if (using_electron()) {
   // It is annoying that we need to do this, but apparently necessary
   window.$ = window.jQuery = require('jquery');
-
-  window.fs=require('fs');
 
   window.electron_resources = {
     load_binary_file_part: _load_binary_file_part,
@@ -25,6 +22,7 @@ function using_electron() {
 }
 
 function _lsdir(path, callback) {
+	const async = require('async');
   require('fs').readdir(path, function(err, list) {
     if (err) {
       callback(err);

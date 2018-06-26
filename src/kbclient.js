@@ -1,21 +1,33 @@
 exports.KBClient = KBClient;
 
-const fs = window.fs;
-var axios = require('axios');
-var async = require('async');
+let fs=null;
+try {
+	fs = require('fs');
+}
+catch(err) {
+}
+const axios = require('axios');
+const async = require('async');
 
 function KBClient() {
   this.readDir = function(path, opts, callback) {
     readDir(path, opts, callback);
   };
-  this.readTextFile = function(path, callback) {
-    readTextFile(path, callback);
+  this.readTextFile = function(path, opts, callback) {
+    readTextFile(path, opts, callback);
   };
   this.readBinaryFilePart = function(path, opts, callback) {
     readBinaryFilePart(path, opts, callback);
   };
+  this.realizeFile = function(path, opts, callback) {-
+    realizeFile(path, callback);
+  };
 
-  function readTextFile(path, callback) {
+  function readTextFile(path, opts, callback) {
+    if (!callback) {
+      callback = opts;
+      opts = {};
+    }
     resolve_file_path(path, {}, function(err, path2) {
       if (err) {
         callback(err);
@@ -35,6 +47,10 @@ function KBClient() {
   }
 
   function readBinaryFilePart(path, opts, callback) {
+    if (!callback) {
+      callback = opts;
+      opts = {};
+    }
     resolve_file_path(path, {}, function(err, path2) {
       if (err) {
         callback(err);
@@ -67,39 +83,51 @@ function KBClient() {
     });
   }
 
+  function realizeFile(path, opts, callback) {
+    if (!callback) {
+      callback = opts;
+      opts = {};
+    }
+    opts.download_if_needed = true;
+    resolve_file_path(path, opts, callback);
+  }
+
   function readDir(path, opts, callback) {
     if (!callback) {
       callback = opts;
       opts = {};
     }
+    if (!path) {
+  		callback('Path is empty.');
+  		return;
+  	}
     if (path.startsWith('kbucket://')) {
-    	let str=path.slice(('kbucket://').length);
-    	let ind0=str.indexOf('/');
-    	let kbhub_id,subdirectory;
-    	if (ind0<0) {
-    		kbhub_id=str;
-    		subdirectory='';
-    		return;
-    	}
-    	else {
-    		kbhub_id=str.slice(0,ind0);
-    		subdirectory=str.slice(ind0+1);
-    	}
+      let str = path.slice(('kbucket://').length);
+      let ind0 = str.indexOf('/');
+      let kbhub_id, subdirectory;
+      if (ind0 < 0) {
+        kbhub_id = str;
+        subdirectory = '';
+        return;
+      } else {
+        kbhub_id = str.slice(0, ind0);
+        subdirectory = str.slice(ind0 + 1);
+      }
       let HKBC = new HttpKBucketClient();
-      HKBC.readDir(kbhub_id,subdirectory,function(err,files,dirs) {
-      	if (err) {
-      		callback('Error reading directory of kbucket hub: '+err);
-      		return;
-      	}
-      	let files2={};
-      	for (let ii in files) {
-      		files2[files[ii].name]=files[ii];
-      	}
-      	let dirs2={};
-      	for (let ii in dirs) {
-      		dirs2[dirs[ii].name]=dirs[ii];
-      	}
-      	callback(null,files2,dirs2);
+      HKBC.readDir(kbhub_id, subdirectory, function(err, files, dirs) {
+        if (err) {
+          callback('Error reading directory of kbucket hub: ' + err);
+          return;
+        }
+        let files2 = {};
+        for (let ii in files) {
+          files2[files[ii].name] = files[ii];
+        }
+        let dirs2 = {};
+        for (let ii in dirs) {
+          dirs2[dirs[ii].name] = dirs[ii];
+        }
+        callback(null, files2, dirs2);
       });
       return;
     }
@@ -162,6 +190,124 @@ function KBClient() {
     });
   }
 
+  function temporary_directory() {
+    var ml_temporary_directory = process.env.ML_TEMPORARY_DIRECTORY || ('/tmp/mountainlab-tmp');
+    mkdir_if_needed(ml_temporary_directory);
+    return ml_temporary_directory;
+  }
+
+  function get_cache_file_path_for_sha1(sha1) {
+    let dirpath = temporary_directory() + '/sha1_cache';
+    mkdir_if_needed(dirpath);
+    mkdir_if_needed(dirpath + '/' + sha1.slice(0, 3));
+    return dirpath + '/' + sha1.slice(0, 3) + '/' + sha1;
+  }
+
+  function download_file(url, dest_fname, opts, callback) {
+    console.info(`Downloading [${url}] > [${dest_fname}] ...`);
+    var bytes_downloaded = 0;
+    var bytes_total = opts.size || null;
+    var timer = new Date();
+    axios.get(url, {
+        responseType: 'stream'
+      })
+      .then(function(response) {
+        response.data.on('data', function(data) {
+          bytes_downloaded += data.length;
+          report_progress(bytes_downloaded, bytes_total);
+        });
+        var write_stream = fs.createWriteStream(dest_fname + '.downloading_');
+        response.data.pipe(write_stream);
+        response.data.on('end', function() {
+          fs.renameSync(dest_fname + '.downloading_', dest_fname);
+          console.info(`Downloaded ${format_file_size(bytes_downloaded)} to ${dest_fname}.`)
+          setTimeout(function() { //dont catch an error from execution of callback
+            callback(null);
+          }, 0);
+        });
+      })
+      .catch(function(err) {
+        callback(err.message);
+      });
+
+    function report_progress(bytes_downloaded, bytes_total) {
+      var elapsed = (new Date()) - timer;
+      if (elapsed < 5000) {
+        return;
+      }
+      timer = new Date();
+      if (bytes_total) {
+        console.info(`Downloaded ${format_file_size(bytes_downloaded)} of ${format_file_size(bytes_total)} ...`)
+      } else {
+        console.info(`Downloaded ${format_file_size(bytes_downloaded)} ...`);
+      }
+    }
+
+    function format_file_size(size_bytes) {
+      var a = 1024;
+      var aa = a * a;
+      var aaa = a * a * a;
+      if (size_bytes > aaa * 3) {
+        return Math.floor(size_bytes / aaa) + ' GB';
+      } else if (size_bytes > aaa) {
+        return Math.floor(size_bytes / (aaa / 10)) / 10 + ' GB';
+      } else if (size_bytes > aa * 3) {
+        return Math.floor(size_bytes / aa) + ' MB';
+      } else if (size_bytes > aa) {
+        return Math.floor(size_bytes / (aa / 10)) / 10 + ' MB';
+      } else if (size_bytes > 10 * a) {
+        return Math.floor(size_bytes / a) + ' KB';
+      } else if (size_bytes > a) {
+        return Math.floor(size_bytes / (a / 10)) / 10 + ' KB';
+      } else {
+        return size_bytes + ' bytes';
+      }
+    }
+  }
+
+  function resolve_file_path_2(sha1, url, opts, callback) {
+  	if (!fs) {
+  		callback(null,url);
+  		return;
+  	}
+    let cache_file_path = get_cache_file_path_for_sha1(sha1);
+    if (fs.existsSync(cache_file_path)) {
+      callback(null, cache_file_path);
+      return;
+    }
+    if (opts.download_if_needed) {
+      let tmp_fname = cache_file_path + '.downloading.' + make_random_id(5);
+      download_file(url, tmp_fname, {
+        sha1: sha1,
+        size: opts.size || undefined
+      }, function(err) {
+        if (err) {
+          try {
+            fs.unlinkSync(tmp_fname);
+          } catch (err2) {
+
+          }
+          callback(err);
+          return;
+        }
+        if (fs.existsSync(cache_file_path)) {
+          fs.unlinkSync(tmp_fname);
+          callback(null, cache_file_path);
+          return;
+        }
+        try {
+          fs.renameSync(tmp_fname, cache_file_path);
+        } catch (err2) {
+          callback('Error renaming file after download.');
+          return;
+        }
+        callback(null, cache_file_path);
+      });
+    } else {
+      callback(null, url);
+    }
+  }
+
   function resolve_file_path(path, opts, callback) {
     if (path.startsWith('sha1://')) {
       let sha1 = path.slice(('sha1://').length);
@@ -177,27 +323,35 @@ function KBClient() {
           callback('File not found on kbucket.');
           return;
         }
-        callback(null, resp.url);
+        resolve_file_path_2(sha1, resp.url, opts, callback);
       });
       return;
     }
     if (path.startsWith('kbucket://')) {
-    	let str=path.slice(('kbucket://').length);
-    	let ind0=str.indexOf('/');
-    	if (ind0<0) {
-    		callback('Improper kbucket:// path: '+path);
-    		return;
-    	}
-    	let kbshare_id=str.slice(0,ind0);
+      let str = path.slice(('kbucket://').length);
+      let ind0 = str.indexOf('/');
+      if (ind0 < 0) {
+        callback('Improper kbucket:// path: ' + path);
+        return;
+      }
+      let kbshare_id = str.slice(0, ind0);
       let HKBC = new HttpKBucketClient();
-      HKBC.findLowestAccessibleHubUrl(kbshare_id,function(err,hub_url) {
-      	if (err) {
-      		callback('Error finding kbucket share: '+err);
-      		return;
-      	}
-      	let url=hub_url+'/'+kbshare_id+'/download/'+str.slice(ind0+1);
-      	callback(null,url);
-      	return;
+      HKBC.findLowestAccessibleHubUrl(kbshare_id, function(err, hub_url) {
+        if (err) {
+          callback('Error finding kbucket share: ' + err);
+          return;
+        }
+        let url_prv = hub_url + '/' + kbshare_id + '/prv/' + str.slice(ind0 + 1);
+        let url_download = hub_url + '/' + kbshare_id + '/download/' + str.slice(ind0 + 1);
+        http_get_json(url_prv, function(err, prv0) {
+          if (err) {
+            callback(`Error getting prv object (${url_prv}): ` + err);
+            return;
+          }
+          opts.filename = require('path').basename(str);
+          opts.size = prv0.original_size;
+          resolve_file_path('sha1://' + prv0.original_checksum, opts, callback);
+        });
       });
       return;
     }
@@ -208,6 +362,7 @@ function KBClient() {
         return;
       }
       opts.filename = require('path').basename(path);
+      opts.size = obj.original_size;
       resolve_file_path('sha1://' + obj.original_checksum, opts, callback);
       return;
     }
@@ -244,8 +399,8 @@ function HttpKBucketClient() {
   this.readDir = function(kbnode_id, subdirectory, callback) {
     readDir(kbnode_id, subdirectory, callback);
   };
-  this.findLowestAccessibleHubUrl=function(kbnode_id,callback) {
-  	find_lowest_accessible_hub_url(kbnode_id,callback);
+  this.findLowestAccessibleHubUrl = function(kbnode_id, callback) {
+    find_lowest_accessible_hub_url(kbnode_id, callback);
   };
 
   //var m_kbucket_url='https://kbucket.org';
@@ -354,8 +509,8 @@ function HttpKBucketClient() {
       //check accessible
       var check_url = `${resp.info.listen_url}/${kbnode_id}/api/nodeinfo`;
       console.info(`Checking whether node ${kbnode_id} is accessible from this location...`, check_url);
-      url_exists(check_url,function(accessible) {
-      	callback(err, resp.info,resp.parent_hub_info,accessible);
+      url_exists(check_url, function(accessible) {
+        callback(err, resp.info, resp.parent_hub_info, accessible);
       });
     });
   }
@@ -478,4 +633,20 @@ function read_json_file(fname) {
   } catch (err) {
     return null;
   }
+}
+
+function make_random_id(len) {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < len; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
+
+function mkdir_if_needed(path) {
+  try {
+    fs.mkdirSync(path);
+  } catch (err) {}
 }

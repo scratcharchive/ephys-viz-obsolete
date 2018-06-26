@@ -24,6 +24,9 @@ module.exports = {
       }
     ]
   },
+  externals: {
+    "fs":"require('fs')"
+  },
   optimization: {
     minimize:false
   },

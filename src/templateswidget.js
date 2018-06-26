@@ -66,7 +66,6 @@ function TemplatesWidget() {
     }
     m_amp_factor=that.m_amp_factor;
     var timer=new Date();
-    console.log(m_amp_factor, that.m_amp_factor);
     
     var holder=m_div.find('#holder');
     
