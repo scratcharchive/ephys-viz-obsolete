@@ -3,8 +3,8 @@ exports.EVDatasetWidget = EVDatasetWidget;
 const TimeseriesModel = require(__dirname + '/timeseriesmodel.js').TimeseriesModel;
 const KBClient = require('kbclient').v1;
 
-const GeomWidget = require(__dirname+'/geomwidget.js').GeomWidget;
-const TimeseriesWidget = require(__dirname+'/timeserieswidget.js').TimeseriesWidget;
+const GeomWidget = require(__dirname + '/geomwidget.js').GeomWidget;
+const TimeseriesWidget = require(__dirname + '/timeserieswidget.js').TimeseriesWidget;
 
 const EventEmitter = require('events');
 
@@ -68,9 +68,9 @@ function EVDatasetWidget() {
 
   function open_view(V) {
     for (var i in m_views) {
-        let V0=m_views[i];
-        if (V0._initialized)
-            V0.element().detach();
+      let V0 = m_views[i];
+      if (V0._initialized)
+        V0.element().detach();
     }
     if (!V._initialized) {
       V.initialize();
@@ -86,7 +86,9 @@ function LeftPanel(views) {
     return m_element;
   };
   let m_emitter = new MyEmitter();
-  this.onOpenView=function(handler) {m_emitter.on('open_view',handler);};
+  this.onOpenView = function(handler) {
+    m_emitter.on('open_view', handler);
+  };
 
   let m_element = $(`
         <div class="ml-vlayout LeftPanel">
@@ -158,9 +160,9 @@ function _GeometryView(view_context) {
 
   function refresh() {
     view_context.dataset.getGeomText(function(txt) {
-        if (txt) {
-            m_geom_widget.setGeomText(txt);
-        } 
+      if (txt) {
+        m_geom_widget.setGeomText(txt);
+      }
     });
   }
 }
@@ -179,7 +181,7 @@ function _TimeseriesView(view_context) {
   let m_timeseries_widget = null;
 
   function initialize() {
-    m_timeseries_widget=new TimeseriesWidget();
+    m_timeseries_widget = new TimeseriesWidget();
     let X = new TimeseriesModel(view_context.dataset.directory() + '/raw.mda', view_context.dataset.params());
     X.initialize(function(err) {
       if (err) {
@@ -191,9 +193,9 @@ function _TimeseriesView(view_context) {
 
   function refresh() {
     view_context.dataset.getGeomText(function(txt) {
-        if (txt) {
-            m_geom_widget.setGeomText(txt);
-        } 
+      if (txt) {
+        m_geom_widget.setGeomText(txt);
+      }
     });
   }
 }
@@ -205,7 +207,7 @@ function EVDataset() {
   this.initialize = function() {
     initialize();
   };
-  this.directory=function() {
+  this.directory = function() {
     return m_directory;
   };
   this.params = function() {
@@ -214,7 +216,7 @@ function EVDataset() {
   this.onChanged = function(handler) {
     m_emitter.on('changed', handler);
   };
-  this.getGeomText=function(callback) {
+  this.getGeomText = function(callback) {
     getGeomText(callback);
   };
 
@@ -225,20 +227,21 @@ function EVDataset() {
 
   function initialize() {
     let KBC = new KBClient();
-    KBC.readDir(m_directory, {}, function(err, files, dirs) {
-      if (err) {
-        console.error('Error reading directory: ' + err);
-        return;
-      }
-      m_files = files;
-      if (m_files['params.json']) {
-        load_params_file(m_directory + '/params.json', function() {
+    KBC.readDir(m_directory, {})
+      .then(function(xx) {
+        console.log(xx);
+        m_files = xx.files;
+        if (m_files['params.json']) {
+          load_params_file(m_directory + '/params.json', function() {
+            initialize_params();
+          });
+        } else {
           initialize_params();
-        });
-      } else {
-        initialize_params();
-      }
-    });
+        }
+      })
+      .catch(function(err) {
+        console.error('Error reading directory: ' + err);
+      });
   }
 
   function initialize_params() {
@@ -258,31 +261,33 @@ function EVDataset() {
 
   function load_params_file(params_fname, callback) {
     let KBC = new KBClient();
-    KBC.readTextFile(params_fname, function(err, txt) {
-      if (err) {
+    KBC.readTextFile(params_fname)
+      .then(function(txt) {
+        console.log(txt);
+        m_params = JSON.parse(txt);
+        m_emitter.emit('changed');
+        callback();
+      })
+      .catch(function(err) {
         console.error('Error loading parameter file: ' + err);
         return;
-      }
-      m_params = JSON.parse(txt);
-      m_emitter.emit('changed');
-      callback();
-    });
+      });
   }
 
   function getGeomText(callback) {
     if (!m_files['geom.csv']) {
-        callback(null);
-        return;
+      callback(null);
+      return;
     }
     let KBC = new KBClient();
-    KBC.readTextFile(m_directory+'/geom.csv', function(err, txt) {
-      if (err) {
+    KBC.readTextFile(m_directory + '/geom.csv')
+      .then(function(txt) {
+        callback(txt);
+      })
+      .catch(function(err) {
         console.error('Error loading geom file: ' + err);
         callback(null);
-        return;
-      }
-      callback(txt);
-    });
+      });
   }
 }
 
