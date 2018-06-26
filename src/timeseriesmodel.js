@@ -1,7 +1,7 @@
 exports.TimeseriesModel=TimeseriesModel;
 
 const Mda=require(__dirname+'/mda.js').Mda;
-const KBClient=require(__dirname+'/kbclient.js').KBClient;
+const KBClient=require('kbclient').v1;
 
 function TimeseriesModel(path_or_mda,params) {
 	var that=this;

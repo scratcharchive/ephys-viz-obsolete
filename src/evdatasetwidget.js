@@ -1,7 +1,7 @@
 exports.EVDatasetWidget = EVDatasetWidget;
 
 const TimeseriesModel = require(__dirname + '/timeseriesmodel.js').TimeseriesModel;
-const KBClient = require(__dirname + '/kbclient.js').KBClient;
+const KBClient = require('kbclient').v1;
 
 const GeomWidget = require(__dirname+'/geomwidget.js').GeomWidget;
 const TimeseriesWidget = require(__dirname+'/timeserieswidget.js').TimeseriesWidget;
