@@ -163,11 +163,12 @@ function resolve_prv(fname,opts) {
       throw new Error('File does not exist: '+fname);
       return;
     }
-    var fname2=require('child_process').execSync("ml-prv-locate "+fname).toString().trim();
+    let mlproc_exe=__dirname+'/../node_modules/mountainlab-js/mlproc/mlproc';
+    var fname2=require('child_process').execSync(`${mlproc_exe} prv-locate ${fname}`).toString().trim();
     if (!fname2) {
       if (opts.search_remote) {
         console.log ('searching kbucket...');
-        fname2 = require('child_process').execSync("ml-prv-locate "+fname+' --remote').toString().trim();
+        fname2 = require('child_process').execSync(`${mlproc_exe} prv-locate prv-locate ${fname} --remote`).toString().trim();
       }
     }
     if (!fname2) {
