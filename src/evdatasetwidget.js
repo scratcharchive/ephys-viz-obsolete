@@ -229,7 +229,6 @@ function EVDataset() {
     let KBC = new KBClient();
     KBC.readDir(m_directory, {})
       .then(function(xx) {
-        console.log(xx);
         m_files = xx.files;
         if (m_files['params.json']) {
           load_params_file(m_directory + '/params.json', function() {
@@ -263,7 +262,6 @@ function EVDataset() {
     let KBC = new KBClient();
     KBC.readTextFile(params_fname)
       .then(function(txt) {
-        console.log(txt);
         m_params = JSON.parse(txt);
         m_emitter.emit('changed');
         callback();
