@@ -29,11 +29,11 @@ function EVDatasetWidget() {
 
   let m_element = $(`
         <div class="EVDatasetWidget ml-hlayout">
-        <div class="ml-hlayout-item" style="flex:0 0 300px; background-color:lightgray">
+        <div class="ml-hlayout-item" style="flex:0 0 300px; border:solid 1px lightgray; padding:15px">
             <span id=left_panel>
             </span>
         </div>
-        <div class="ml-hlayout-item" style="flex:1">
+        <div class="ml-hlayout-item" style="flex:1; padding:15px">
             <span id=view_holder></span>
         </div>
         </div>
@@ -78,7 +78,9 @@ function EVDatasetWidget() {
     }
     m_element.find('#view_holder').empty();
     m_element.find('#view_holder').append(V.element());
+    m_left_panel.setCurrentView(V);
   }
+  open_view(m_views[0]);
 }
 
 function LeftPanel(views) {
@@ -89,30 +91,46 @@ function LeftPanel(views) {
   this.onOpenView = function(handler) {
     m_emitter.on('open_view', handler);
   };
+  this.setCurrentView = function(V) {
+    m_current_view = V;
+    refresh();
+  }
 
   let m_element = $(`
         <div class="ml-vlayout LeftPanel">
-            <ul id=view_list>
+            <ul id=view_list style="list-style-type: none; padding:0; margin:0">
             <ul>
         </div>
         `);
+  let m_current_view = null;
 
-  var ul = m_element.find('#view_list');
-  for (let i in views) {
-    let V = views[i];
-    let link = create_view_link(V);
-    let li = $('<li />');
-    li.append(link);
-    ul.append(li);
+  function refresh() {
+    var ul = m_element.find('#view_list');
+    ul.empty();
+    for (let i in views) {
+      let V = views[i];
+      let link = create_view_link(V);
+      let li = $('<li />');
+      li.append(link);
+      ul.append(li);
+      if (V==m_current_view) {
+        li.css({"font-weight":"bold"});
+        li.find('a').css({"color":"darkblue"});
+      }
+    }
   }
 
+
+
   function create_view_link(V) {
-    let link = $(`<a href=#>${V.label()}</a>`);
+    let link = $(`<a href=# style="color:black">${V.label()}</a>`);
     link.click(function() {
       m_emitter.emit('open_view', V);
     });
     return link;
   }
+
+  refresh();
 }
 
 function _SummaryView(view_context) {
@@ -250,6 +268,7 @@ function EVDataset() {
         if (err) {
           throw 'Error initializing timeseries model: ' + err;
         }
+        m_params['directory'] = m_directory;
         m_params['num_channels'] = X.numChannels();
         m_params['num_samples'] = X.numTimepoints();
         m_params['dtype'] = X.dtype();
@@ -300,6 +319,10 @@ function EVDatasetSummaryView(EVD) {
         <div>
         <table class=table>
             <tr>
+                <th>directory</th>
+                <td><span id=directory></span></td>
+            </tr>
+            <tr>
                 <th>num_channels</th>
                 <td><span id=num_channels></span></td>
             </tr>
@@ -310,6 +333,10 @@ function EVDatasetSummaryView(EVD) {
             <tr>
                 <th>samplerate (Hz)</th>
                 <td><span id=samplerate></span></td>
+            </tr>
+            <tr>
+                <th>duration (min)</th>
+                <td><span id=duration_min></span></td>
             </tr>
             <tr>
                 <th>dtype</th>
@@ -323,15 +350,38 @@ function EVDatasetSummaryView(EVD) {
         </div>
     `);
 
+  /*
   m_element.find('th').css({
     "max-width": "30px"
   });
+  */
 
   function refresh() {
+    let samplerate=Number(EVD.params().samplerate||0);
+    let num_samples=Number(EVD.params().num_samples||0);
+    let duration_min=num_samples/samplerate/60;
+    let directory_elmt=create_directory_elmt(EVD.params().directory||'');
+    m_element.find('#directory').empty();
+    m_element.find('#directory').append(directory_elmt);
     m_element.find('#num_channels').html(EVD.params().num_channels || undefined);
-    m_element.find('#num_samples').html(EVD.params().num_samples || undefined);
-    m_element.find('#samplerate').html(EVD.params().samplerate || undefined);
+    m_element.find('#num_samples').html(num_samples);
+    m_element.find('#samplerate').html(samplerate);
+    m_element.find('#duration_min').html(duration_min);
     m_element.find('#dtype').html(EVD.params().dtype || undefined);
     m_element.find('#spike_sign').html(EVD.params().spike_sign || EVD.params().detect_sign || undefined);
+  }
+
+  function create_directory_elmt(directory) {
+    if (directory.startsWith('kbucket://')) {
+        let str=directory.slice(('kbucket://').length);
+        let list=str.split('/');
+        let kbshare_id=list[0]||'';
+        let subdirectory=str.slice(kbshare_id.length+1);
+        let url=`https://kbucketgui.herokuapp.com/?share=${kbshare_id}&subdirectory=${subdirectory}`;
+        return $(`<a href="${url}">${directory}</a>`);
+    }
+    else {
+        return $(`<span>${directory}</span>`);
+    }
   }
 }

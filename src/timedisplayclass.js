@@ -61,8 +61,8 @@ function EVTimeDisplay(O) {
   var m_width = 0;
   var m_height = 0;
   var m_samplerate = 20000;
-  var m_view_range = [0, 100];
-  var m_max_view_range = 15000;
+  var m_view_range = [0, 1000];
+  var m_max_view_range = 25000;
   var m_min_view_range = 100;
   var m_current_timepoint = 40;
   var m_drag_anchor = -1;
