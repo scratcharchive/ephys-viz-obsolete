@@ -158,6 +158,10 @@ function resolve_prvs(params,opts) {
 
 function resolve_prv(fname,opts) {
   opts=opts||{};
+  if (!is_url(fname)) {
+    if ((!fs.existsSync(fname))&&(fs.existsSync(fname+'.prv')))
+      fname+='.prv';
+  }
   if ((fname)&&(ends_with(fname,'.prv'))) {
     if (!fs.existsSync(fname)) {
       throw new Error('File does not exist: '+fname);
