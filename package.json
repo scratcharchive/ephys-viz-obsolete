@@ -18,13 +18,13 @@
     "electron-builder": "^20.11.1"
   },
   "dependencies": {
+    "async": "^2.6.1",
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
     "d3": "^5.2.0",
     "express": "^4.16.3",
     "jquery": "^3.3.1",
     "kbclient": "latest",
-    "mountainlab-js": "^0.3.0",
     "octicons": "4.3.0",
     "popper.js": "^1.14.3",
     "webpack": "^4.8.1",

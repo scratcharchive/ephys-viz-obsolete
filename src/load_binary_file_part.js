@@ -1,5 +1,22 @@
 exports.load_binary_file_part=load_binary_file_part;
 
+const KBClient = require('kbclient').v1;
+
+function load_binary_file_part(url_or_path,start,end,callback) {
+	let KBC=new KBClient();
+	KBC.readBinaryFilePart(url_or_path, {
+        start: start,
+        end: end
+      })
+      .then(function(buf) {
+        callback(null,buf);
+      })
+      .catch(function(err) {
+        console.error(`Error reading part of file ${m_path}: ` + err);
+      });
+}
+
+
 /*
 Alex M: I know this is silly... I should be finding the protocol properly, but oh well...
 */
@@ -12,7 +29,7 @@ function is_dat(fname_or_dat) {
 	return (fname_or_dat.indexOf('dat://')==0);
 }
 
-function load_binary_file_part(url_or_dat_or_path,start,end,callback) {
+function load_binary_file_part_old(url_or_dat_or_path,start,end,callback) {
 	if (is_url(url_or_dat_or_path)) {
 		var url=url_or_dat_or_path;
 		var headers={};

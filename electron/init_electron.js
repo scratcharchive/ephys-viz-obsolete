@@ -167,6 +167,12 @@ function resolve_prv(fname,opts) {
       throw new Error('File does not exist: '+fname);
       return;
     }
+    let obj=read_json_file(fname);
+    if (!obj) {
+      throw new Error('Error parsing json of prv file: '+fname);
+    }
+    fname='sha1://'+obj.original_checksum;
+    /*
     var fname2=require('child_process').execSync(`ml-prv-locate ${fname} --local --remote`).toString().trim();
     if (!fname2) {
       throw new Error('Unable to find file for: '+fname);
@@ -177,6 +183,7 @@ function resolve_prv(fname,opts) {
     }
     console.log ('Found file: '+fname2);
     return fname2;
+    */
   }
   return fname;
 }
@@ -188,4 +195,13 @@ function exists_or_is_url(fname_or_url) {
 
 function is_url(fname_or_url) {
   return ((fname_or_url.indexOf('http:')==0)||(fname_or_url.indexOf('https:')==0));
+}
+
+function read_json_file(fname) {
+  try {
+    var txt = fs.readFileSync(fname, 'utf8')
+    return JSON.parse(txt);
+  } catch (err) {
+    return null;
+  }
 }
