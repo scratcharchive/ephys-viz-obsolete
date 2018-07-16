@@ -1,13 +1,19 @@
 language: node_js
 node_js:
- - "node"
-
+- node
 addons:
   apt:
     packages:
-      - xvfb
-
+    - xvfb
 install:
-  - export DISPLAY=':99.0'
-  - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-  - npm install
+- export DISPLAY=':99.0'
+- Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+- npm install
+deploy:
+  provider: npm
+  email: jmagland@flatironinstitute.org
+  api_key:
+    secure: RFwooujS7MOX91e9uZH5Ica/W3J/RzXFY37uJKaO7sXN9u5LwImSGWHzVHQ/4GmJ4OTeCnlRSABPocI/1c1xbRGnsfbrIiCmEevbKFmKdnXhLbUad28iXOmqu0KqGkSB23EhSUazyn9D5dDC48dT6jaBl7pbIFEorfG1BLJsGHxhNnNux+lBNNcdn21F1aKdyLmhZGhs23mWA7e0+3dtPIla7f+csdwQIM3/0FEtORa/FgWsXLOxkvLqHabFo9RFnQQx02V0Cs6jzg1Iysnnc9wMCnmT2ndPVKAUnTlgESC9ljGaTxDUg+5PlV5I9NzjeKEiKoc2kJfBz8aRg4P3H3HqZdcBQXyVlVIZqKeGcR1WG2K4hNXjgRkcNj845jKSYdW0vKunDhaek+4D3v6hliGvQ/O5adyJVJjSizC3otWxe3iLPCij03YjH2TayVCDJGUxRtg/VgGxZYrqvoZfflYhf65CYjb+Tx29MvCJROqJKXV1YfrhGZehPPOf7ZOmJf27K0KjXshrqMNPFHpnKQxSl2BBYNnRLZCJ6/GbSEoGIObkbHgPlq+Otxur3sa1lPFHAVDEATfaCUGIm8vrg8sZEc+LDCFTia5aCD3cQR2kXRGkq/SbhlS7k0GQVohVdDt5WOXmfJ6O5khqllyC826eTZiaNUZHsba+ifzSlEc=
+  on:
+    tags: true
+    repo: flatironinstitute/ephys-viz
