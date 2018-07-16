@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-const electron=require('electron')
- 
-args=[`${__dirname}/../electron/openpage.js`,'index.html','--view=geometry'];
-args=args.concat(process.argv.slice(2));
+const launch=require(__dirname+'/launch_ephys_viz.js').launch;
 
-require('child_process').spawn(electron,args);
+let args=process.argv.slice(2);
+args.push('--view=geometry');
+launch(args);
