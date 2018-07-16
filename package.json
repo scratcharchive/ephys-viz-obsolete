@@ -12,14 +12,12 @@
   },
   "author": "Jeremy Magland",
   "license": "Apache v2",
-  "devDependencies": {
-    "electron": "^2.0.0"
-  },
   "dependencies": {
     "async": "^2.6.1",
     "axios": "^0.18.0",
     "bootstrap": "^4.1.1",
     "d3": "^5.2.0",
+    "electron": "^2.0.5",
     "express": "^4.16.3",
     "jquery": "^3.3.1",
     "kbclient": "latest",
