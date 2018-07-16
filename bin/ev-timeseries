@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-DIR=`dirname $0`
-$DIR/../node_modules/.bin/electron $DIR/../electron/openpage.js index.html --view=timeseries $@
+const electron=require('electron')
+ 
+args=[`${__dirname}/../electron/openpage.js`,'index.html','--view=timeseries'];
+args=args.concat(process.argv.slice(2));
+
+require('child_process').spawn(electron,args);

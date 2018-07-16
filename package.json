@@ -13,9 +13,7 @@
   "author": "Jeremy Magland",
   "license": "Apache v2",
   "devDependencies": {
-    "cross-env": "^5.1.4",
-    "electron": "^2.0.0",
-    "electron-builder": "^20.11.1"
+    "electron": "^2.0.0"
   },
   "dependencies": {
     "async": "^2.6.1",
