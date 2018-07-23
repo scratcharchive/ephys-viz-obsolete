@@ -172,18 +172,6 @@ function resolve_prv(fname,opts) {
       throw new Error('Error parsing json of prv file: '+fname);
     }
     fname='sha1://'+obj.original_checksum;
-    /*
-    var fname2=require('child_process').execSync(`ml-prv-locate ${fname} --local --remote`).toString().trim();
-    if (!fname2) {
-      throw new Error('Unable to find file for: '+fname);
-    }
-    
-    if (!exists_or_is_url(fname2)) {
-      throw new Error('Failure of prv-locate: '+fname2);
-    }
-    console.log ('Found file: '+fname2);
-    return fname2;
-    */
   }
   return fname;
 }
