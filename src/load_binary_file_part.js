@@ -12,7 +12,7 @@ function load_binary_file_part(url_or_path,start,end,callback) {
         callback(null,buf);
       })
       .catch(function(err) {
-        console.error(`Error reading part of file ${m_path}: ` + err);
+        console.error(`Error reading part of file ${url_or_path}: ` + err);
       });
 }
 
