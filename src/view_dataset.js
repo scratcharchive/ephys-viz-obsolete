@@ -4,11 +4,14 @@ const EVDatasetWidget=require(__dirname+'/evdatasetwidget.js').EVDatasetWidget;
 
 function view_dataset(PARAMS) {
 	var dataset_directory=PARAMS.dataset||PARAMS.arg1;
+	let firings=PARAMS.firings||'';
 	start_app();
 
 	function start_app() {
 		var W=new EVDatasetWidget();
 		W.setDatasetDirectory(dataset_directory);
+		if (firings)
+			W.setFirings(firings);
 
 		W.setSize(400,400);
 		$('#content').append(W.element());

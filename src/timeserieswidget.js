@@ -155,6 +155,7 @@ function TimeseriesWidget() {
     function get_channels() {
         if (m_channels) return m_channels;
         var channels=[];
+        if (!m_timeseries_model) return [];
         for (var mm=1; mm<=m_timeseries_model.numChannels(); mm++) {
             channels.push(mm);
         }

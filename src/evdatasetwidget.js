@@ -1,12 +1,15 @@
 exports.EVDatasetWidget = EVDatasetWidget;
 
 const TimeseriesModel = require(__dirname + '/timeseriesmodel.js').TimeseriesModel;
+const FiringsModel=require('./firingsmodel.js').FiringsModel;
 const KBClient = require('kbclient').v1;
 
 const GeomWidget = require(__dirname + '/geomwidget.js').GeomWidget;
 const TimeseriesWidget = require(__dirname + '/timeserieswidget.js').TimeseriesWidget;
+const load_binary_file_part=require('./load_binary_file_part.js').load_binary_file_part;
 
 const EventEmitter = require('events');
+const Mda = require(__dirname + '/mda.js').Mda;
 
 class MyEmitter extends EventEmitter {};
 
@@ -21,6 +24,9 @@ function EVDatasetWidget() {
     m_dataset_directory = dataset_directory;
     m_dataset.setDirectory(m_dataset_directory);
     m_dataset.initialize();
+  };
+  this.setFirings = function(firings) {
+    view_context.firings=firings;
   };
   this.setSize = function(W, H) {
     m_width = W;
@@ -143,6 +149,9 @@ function _SummaryView(view_context) {
   this.label = function() {
     return 'Dataset summary';
   };
+  this.refresh = function() {
+    m_summary_view.refresh()
+  };
 
   let m_summary_view = null;
 
@@ -164,6 +173,9 @@ function _GeometryView(view_context) {
   };
   this.label = function() {
     return 'Geometry';
+  };
+  this.refresh = function() {
+    refresh();
   };
 
   let m_geom_widget = null;
@@ -195,6 +207,9 @@ function _TimeseriesView(view_context) {
   this.label = function() {
     return 'Timeseries';
   };
+  this.refresh = function() {
+    refresh();
+  };
 
   let m_timeseries_widget = null;
 
@@ -206,15 +221,38 @@ function _TimeseriesView(view_context) {
         throw 'Error initializing timeseries model: ' + err;
       }
       m_timeseries_widget.setTimeseriesModel(X);
+      if (view_context.firings) {
+        load_firings_model(view_context.firings,function(err,model) {
+          if (err) {
+            throw 'Error initializing firings model: ' + err;
+          }
+          m_timeseries_widget.setFiringsModel(model);
+        });
+      }
     });
   }
 
+  function load_firings_model(firings,callback) {
+    if (firings) {
+      let KBC=new KBClient();
+      KBC.readBinaryFilePart(firings, {})
+        .then(function(buf) {
+          var X=new Mda();
+          X.setFromArrayBuffer(buf);
+          FM=new FiringsModel(X);
+          callback(null,FM);
+        })
+        .catch(function(err) {
+          callback(`Error loading firings file: ${firings}: ${err.message}`);
+          return;
+        });
+    }
+    else {
+      callback();
+    }
+  }
+
   function refresh() {
-    view_context.dataset.getGeomText(function(txt) {
-      if (txt) {
-        m_geom_widget.setGeomText(txt);
-      }
-    });
   }
 }
 
