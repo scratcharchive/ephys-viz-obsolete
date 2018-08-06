@@ -12,7 +12,7 @@ var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file
 var TSM=null;
 var FM=null;
 
-function view_timeseries(PARAMS) {
+function view_timeseries(PARAMS, parent_element) {
 	var timeseries=PARAMS.timeseries||PARAMS.arg1;
 	var firings=PARAMS.firings;
 	load_timeseries_model(timeseries,PARAMS,function() {
@@ -66,7 +66,7 @@ function view_timeseries(PARAMS) {
 
 		W.setSize(400,400);
 		W.setViewRange([0,1000]);
-		$('#content').append(W.div());
+		parent_element.append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {

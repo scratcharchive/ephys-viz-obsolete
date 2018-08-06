@@ -5,7 +5,7 @@ var load_text_file=require('./load_text_file.js').load_text_file;
 
 var COMPARISON=null;
 
-function view_sort_comparison(PARAMS) {
+function view_sort_comparison(PARAMS, parent_element) {
 	var comparison=PARAMS.comparison||PARAMS.arg1;
 	load_comparison(comparison,function() {
 		start_app();
@@ -27,7 +27,7 @@ function view_sort_comparison(PARAMS) {
 		var W=new SortComparisonWidget();
 		W.setObject(COMPARISON);
 
-		$('#content').append(W.div());
+		parent_element.append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {

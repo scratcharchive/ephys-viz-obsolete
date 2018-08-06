@@ -6,7 +6,7 @@ var load_text_file=require('./load_text_file.js').load_text_file;
 
 var GEOM=null;
 
-function view_geometry(PARAMS) {
+function view_geometry(PARAMS, parent_element) {
 	var geometry=PARAMS.geometry||PARAMS.arg1;
 	load_geometry(geometry,function() {
 		start_app();
@@ -28,7 +28,7 @@ function view_geometry(PARAMS) {
 		var W=new GeomWidget();
 		W.setGeomText(GEOM);
 
-		$('#content').append(W.div());
+		parent_element.append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {

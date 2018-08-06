@@ -7,7 +7,7 @@ var load_binary_file_part=require('./load_binary_file_part.js').load_binary_file
 
 var templates=null;
 
-function view_templates(PARAMS) {
+function view_templates(PARAMS, parent_element) {
 	var templates_path=PARAMS.templates||PARAMS.arg1;
 	load_templates(templates_path,function() {
 		start_app();
@@ -31,7 +31,7 @@ function view_templates(PARAMS) {
 
 		W.setSize(400,400);
 		W.setViewRange([-1,-1]);
-		$('#content').append(W.div());
+		parent_element.append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {

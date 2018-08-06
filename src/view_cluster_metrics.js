@@ -5,7 +5,7 @@ var load_text_file=require('./load_text_file.js').load_text_file;
 
 var METRICS=null;
 
-function view_cluster_metrics(PARAMS) {
+function view_cluster_metrics(PARAMS, parent_element) {
 	var metrics=PARAMS.metrics||PARAMS.arg1;
 	load_metrics(metrics,function() {
 		start_app();
@@ -27,7 +27,7 @@ function view_cluster_metrics(PARAMS) {
 		var W=new ClusterMetricsWidget();
 		W.setObject(METRICS);
 
-		$('#content').append(W.div());
+		parent_element.append(W.div());
 		$(window).resize(update_size);
 		update_size();
 		function update_size() {
