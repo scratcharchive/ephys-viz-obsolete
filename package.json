@@ -1,6 +1,6 @@
 {
   "name": "ephys-viz",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "",
   "scripts": {
     "test": "bin/ev-dataset kbucket://b5ecdf1474c5/datasets/synth_datasets/datasets/synth_tetrode_30min --timeout=4000",
