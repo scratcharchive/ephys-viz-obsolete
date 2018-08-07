@@ -10,8 +10,10 @@ function view_dataset(PARAMS, parent_element) {
 	function start_app() {
 		var W=new EVDatasetWidget();
 		W.setDatasetDirectory(dataset_directory);
-		if (firings)
+		if (firings) {
+			console.info('Setting firings: '+firings);
 			W.setFirings(firings);
+		}
 
 		W.setSize(400,400);
 		parent_element.append(W.element());

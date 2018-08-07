@@ -19,6 +19,8 @@ def ephys_viz_v1(*,params,title='View',external_link=False,height=450):
         W.load_js_files([path0+'/javascript/d3.min.js'])
         W.load_css(path0+'/css/bootstrap.min.css')
         W.load_css(path0+'/css/ml-layout.css')
+        #W.load_css(path0+'/css/octicons.css')
+        W.load_css('https://cdnjs.cloudflare.com/ajax/libs/octicons/4.0.0/font/octicons.css')
         display(W)
         W.js_init('''
             element.empty()
