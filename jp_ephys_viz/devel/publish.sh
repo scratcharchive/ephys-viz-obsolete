@@ -1,4 +1,4 @@
-dir="(dirname $0)"
+dir="$(dirname $0)"
 
 cd $dir/..
 rm -rf build/ dist/ mountainlab_pytools.egg-info/
