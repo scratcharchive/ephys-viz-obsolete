@@ -3,3 +3,5 @@ test.mda
 bundle.js
 bundle.js.map
 package-lock.json
+*.sublime-project
+*.sublime-workspace

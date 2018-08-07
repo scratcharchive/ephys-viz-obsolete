@@ -1,0 +1,6 @@
+build
+dist
+__pycache__
+*.egg-info
+jp_ephys_viz/javascript/*.js
+jp_ephys_viz/css/*.css
