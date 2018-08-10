@@ -1,6 +1,6 @@
 {
   "name": "ephys-viz",
-  "version": "0.6.10",
+  "version": "0.6.11",
   "description": "",
   "scripts": {
     "test": "bin/ev-dataset kbucket://b5ecdf1474c5/datasets/synth_datasets/datasets/synth_tetrode_30min --timeout=4000",
@@ -30,5 +30,27 @@
   },
   "directories": {
     "bin": "bin"
+  },
+  "conda": {
+    "build_number": 0,
+    "build_script": [
+      "tgzfile=$(npm pack)",
+      "npm install -g $tgzfile"
+      "python -m pip install vdom jp_proxy_widget",
+      "python -m pip install --no-deps --ignore-installed jp_ephys_viz"
+    ],
+    "requirements": [
+      "python",
+      "pip",
+      "nodejs",
+      "ipython",
+      "ipywidgets"
+    ],
+    "test_commands": [
+      "which ev-timeseries"
+    ],
+    "test_imports": [
+      "jp_ephys_viz"
+    ]
   }
 }
