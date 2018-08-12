@@ -2,6 +2,8 @@
 {% set npm = load_npm() %}
 {% set build_script = npm.get('conda',{}).get('build_script',[]) %}
 {% set test_commands = npm.get('conda',{}).get('test_commands',[]) %}
+{% set test_imports = npm.get('conda',{}).get('test_imports',[]) %}
+{% set requirements = npm.get('conda',{}).get('requirements',[]) %}
 {% set pkg_name = npm.get('name') %}
 {% set version = npm.get('version') %}
 {% set build_number = npm.get('conda',{}).get('build_number',0) %}
