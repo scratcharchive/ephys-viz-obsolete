@@ -31,8 +31,8 @@
   "directories": {
     "bin": "bin"
   },
-  "repository":{
-    "url":"https://github.com/flatironinstitute/ephys-viz"
+  "repository": {
+    "url": "https://github.com/flatironinstitute/ephys-viz"
   },
   "conda": {
     "build_number": 0,
