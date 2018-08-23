@@ -95,6 +95,8 @@ function TimeseriesModel(path_or_mda, params) {
           data = new Float64Array(buf);
         } else if (dtype == 'int16') {
           data = new Int16Array(buf);
+        } else if (dtype == 'uint16') {
+          data = new Uint16Array(buf);
         } else {
           console.error('Unsupported dtype: ' + dtype);
           return false;
