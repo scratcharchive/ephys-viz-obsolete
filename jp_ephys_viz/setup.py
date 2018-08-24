@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="jp_ephys_viz",
-    version="0.6.15",
+    version="0.6.16",
     author="Jeremy Magland",
     author_email="jmagland@flatironinstitute.org",
     description="Use ephys-viz in jupyterlab and ipython notebook",
