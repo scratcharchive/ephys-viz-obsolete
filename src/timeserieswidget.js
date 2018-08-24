@@ -240,6 +240,13 @@ function TimeseriesWidget() {
         that._scheduleRefresh();
     }
     function setChannels(channels) {
+        if (typeof(channels)=='string') {
+            let list=channels.split(',');
+            channels=[];
+            for (let i=0; i<list.length; i++) {
+                channels.push(Number(list[i]));
+            }
+        }
         m_channels=JSON.parse(JSON.stringify(channels));
         that._scheduleRefresh();
     }

@@ -32,10 +32,10 @@ function TemplatesWidget() {
   var m_div=$(`
   <div class="ml-vlayout">
     <div class="ml-vlayout-item" style="flex:0 0 ${top_panel_height}px">
-      <button class="btn" id=amp_down><span class="octicon octicon-arrow-down"></span></button>
-      <button class="btn" id=amp_up><span class="octicon octicon-arrow-up"></span></button>
-      <button class="btn" id=time_zoom_in><span class="octicon octicon-plus"></span></button>
-      <button class="btn" id=time_zoom_out><span class="octicon octicon-dash"></span></button>
+      <button class="btn" id=amp_down><span class="fa fa-arrow-down"></span></button>
+      <button class="btn" id=amp_up><span class="fa fa-arrow-up"></span></button>
+      <button class="btn" id=time_zoom_in><span class="fa fa-search-plus"></span></button>
+      <button class="btn" id=time_zoom_out><span class="fa fa-search-minus"></span></button>
     </div>
     <div class="ml-vlayout-item" style="flex:1">
       <svg id=holder></svg>

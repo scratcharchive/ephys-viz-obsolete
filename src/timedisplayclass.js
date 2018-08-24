@@ -77,10 +77,10 @@ function EVTimeDisplay(O) {
   var m_div = $(`
         <div class="ml-vlayout EVTimeDisplay">
             <div class="ml-vlayout-item" style="flex:0 0 ${top_panel_height}px">
-                <button class="btn" id=amp_down><span class="octicon octicon-arrow-down"></span></button>
-                <button class="btn" id=amp_up><span class="octicon octicon-arrow-up"></span></button>
-                <button class="btn" id=time_zoom_in><span class="octicon octicon-plus"></span></button>
-                <button class="btn" id=time_zoom_out><span class="octicon octicon-dash"></span></button>
+                <button class="btn" id=amp_down><span class="fa fa-arrow-down"></span></button>
+                <button class="btn" id=amp_up><span class="fa fa-arrow-up"></span></button>
+                <button class="btn" id=time_zoom_in><span class="fa fa-search-plus"></span></button>
+                <button class="btn" id=time_zoom_out><span class="fa fa-search-minus"></span></button>
                 <a id=view_todo_list href=# style="font-size:9px" title="View todo list for this widget">todo</a>
             </div>
             <div class="ml-vlayout-item" style="flex:1">
@@ -98,6 +98,7 @@ function EVTimeDisplay(O) {
     } else {
       time_zoom_out(); //scrolling down
     }
+    return false;
   });
 
   function view_todo_list() {
@@ -128,6 +129,7 @@ function EVTimeDisplay(O) {
 
 
   document.onkeydown = function(evt) {
+    return;
     evt = evt || window.event;
     if (evt.ctrlKey && evt.keyCode == 90) {
       alert("Ctrl-Z");

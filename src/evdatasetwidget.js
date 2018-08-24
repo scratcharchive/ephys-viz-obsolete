@@ -32,6 +32,10 @@ function EVDatasetWidget() {
     m_width = W;
     m_height = H;
   };
+  this.setVisibleChannels = function(visible_channels) {
+    console.log('setting visible channels: '+visible_channels);
+    view_context.visible_channels=visible_channels;
+  };
 
   let m_element = $(`
         <div class="EVDatasetWidget ml-hlayout">
@@ -51,7 +55,9 @@ function EVDatasetWidget() {
   let m_dataset = new EVDataset();
 
   let view_context = {
-    dataset: m_dataset
+    dataset: m_dataset,
+    firings: null,
+    visible_channels: null
   };
 
   let m_views = [];
@@ -189,6 +195,9 @@ function _GeometryView(view_context) {
   }
 
   function refresh() {
+    if (view_context.visible_channels) {
+      m_geom_widget.setVisibleChannels(view_context.visible_channels);
+    }
     view_context.dataset.getGeomText(function(txt) {
       if (txt) {
         m_geom_widget.setGeomText(txt);
@@ -221,6 +230,8 @@ function _TimeseriesView(view_context) {
         throw 'Error initializing timeseries model: ' + err;
       }
       m_timeseries_widget.setTimeseriesModel(X);
+      if (view_context.visible_channels)
+        m_timeseries_widget.setChannels(view_context.visible_channels);
       if (view_context.firings) {
         load_firings_model(view_context.firings,function(err,model) {
           if (err) {
