@@ -171,7 +171,7 @@ function resolve_prv(fname,opts) {
     if (!obj) {
       throw new Error('Error parsing json of prv file: '+fname);
     }
-    fname='sha1://'+obj.original_checksum;
+    //fname='sha1://'+obj.original_checksum;
   }
   return fname;
 }

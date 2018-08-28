@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  target: 'electron-renderer',
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',

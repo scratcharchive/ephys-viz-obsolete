@@ -33,7 +33,6 @@ function EVDatasetWidget() {
     m_height = H;
   };
   this.setVisibleChannels = function(visible_channels) {
-    console.log('setting visible channels: '+visible_channels);
     view_context.visible_channels=visible_channels;
   };
 

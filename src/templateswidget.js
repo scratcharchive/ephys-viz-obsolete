@@ -1,4 +1,4 @@
-var TimeDisplay=require('./timedisplayclass.js').TimeDisplay
+const TimeDisplay=require('./timedisplayclass.js').TimeDisplay
 
 exports.TemplatesWidget=TemplatesWidget;
 
