@@ -34,27 +34,5 @@
   },
   "repository": {
     "url": "https://github.com/flatironinstitute/ephys-viz"
-  },
-  "conda": {
-    "build_number": 0,
-    "build_script": [
-      "tgzfile=$(npm pack)",
-      "npm install -g $tgzfile",
-      "python -m pip install vdom jp_proxy_widget",
-      "python -m pip install --no-deps --ignore-installed jp_ephys_viz"
-    ],
-    "requirements": [
-      "python",
-      "pip",
-      "nodejs",
-      "ipython",
-      "ipywidgets"
-    ],
-    "test_commands": [
-      "which ev-timeseries"
-    ],
-    "test_imports": [
-      "jp_ephys_viz"
-    ]
   }
 }
